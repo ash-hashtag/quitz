@@ -14,6 +14,7 @@ class Cardlet extends StatelessWidget {
       margin: const EdgeInsets.all(8.0),
       padding: const EdgeInsets.all(8.0),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(question.question),
           (question.type == QuesType.choice ||
@@ -27,14 +28,31 @@ class Cardlet extends StatelessWidget {
                   maxLength: question.limit,
                   maxLines: null,
                 ),
-          Align(alignment: Alignment.bottomRight, child: TextButton(onPressed: submit, child: const Text('Submit'),),),
+          const Align(alignment: Alignment.bottomRight, child: SubmitButton()),
         ],
       ),
     );
   }
+}
+
+class SubmitButton extends StatefulWidget {
+  const SubmitButton({Key? key}) : super(key: key);
+
+  @override
+  State<SubmitButton> createState() => _SubmitButtonState();
+}
+
+class _SubmitButtonState extends State<SubmitButton> {
+  bool submitted = false;
 
   Future<void> submit() async {
-    
+    setState(() => submitted = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+        onPressed: submitted ? null : submit, child: Text(submitted ? 'Submitted' : 'Submit'));
   }
 }
 
@@ -53,6 +71,7 @@ class _ChoiceState extends State<Choice> {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      shrinkWrap: true,
       children: [
         for (final i in widget.choices)
           ListTile(
@@ -63,7 +82,7 @@ class _ChoiceState extends State<Choice> {
                       ? selectedChoice.remove(i)
                       : selectedChoice.add(i)
                   : selectedChoice.isNotEmpty
-                      ? selectedChoice.first = i
+                      ? selectedChoice = i == selectedChoice.first ? [] : [i]
                       : selectedChoice.add(i),
             ),
             selected: selectedChoice.contains(i),

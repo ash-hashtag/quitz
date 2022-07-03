@@ -8,13 +8,13 @@ enum QuesType {
 class CardletModel{
   final String question;
   final QuesType type;
-  final int? limit;
+  final int limit;
   final List<String> choices;
 
   const CardletModel({
     required this.question,
     this.type = QuesType.choice,
-    this.limit,
+    this.limit = 255,
     this.choices = const []
   });
 }

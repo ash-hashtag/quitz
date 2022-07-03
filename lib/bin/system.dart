@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 class System {
@@ -15,4 +16,19 @@ class System {
       ),
     );
   }
+
+  static final ErrorWidget = Scaffold(
+    backgroundColor: Colors.purple,
+    body: Center(
+        child: RichText(
+            text: const TextSpan(children: [
+      TextSpan(
+        text: 'ERROR',
+        style: TextStyle(
+          fontSize: 48,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ]))),
+  );
 }
