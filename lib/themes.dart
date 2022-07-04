@@ -130,7 +130,9 @@ class Themes {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
+      iconColor: Colors.white
     ),
-  popupMenuTheme: const PopupMenuThemeData(textStyle: TextStyle(color: Colors.black))
+  popupMenuTheme: const PopupMenuThemeData(textStyle: TextStyle(color: Colors.black)),
+  iconTheme: const IconThemeData(color: Colors.white)
   );
 }

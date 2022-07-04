@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:loop_page_view/loop_page_view.dart';
 import 'package:provider/provider.dart';
 import 'package:quitz/bin/swipe.dart';
+import 'package:quitz/models/cardletModel.dart';
 import 'package:quitz/routes.dart';
 import 'package:quitz/screens/makeQuesPage.dart';
 import 'package:quitz/themes.dart';
@@ -36,14 +37,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   static const route = '/';
   const HomePage({Key? key}) : super(key: key);
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Quitz'),),
+      appBar: AppBar(
+        title: const Text('Quitz'),
+      ),
       body: LoopPageView.builder(
           itemBuilder: (_, i) => Center(
                 child: Cardlet(
@@ -52,10 +60,16 @@ class HomePage extends StatelessWidget {
               ),
           itemCount: quesModels.length),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-            context, MaterialPageRoute(builder: (_) => const MakeQuesPage())),
+        onPressed: () => askQuestion(context),
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> askQuestion(BuildContext context) async {
+    var question = await Navigator.pushNamed(context, MakeQuesPage.route);
+    if ( question is CardletModel) {
+      setState(() => quesModels.add(question));
+    }
   }
 }
