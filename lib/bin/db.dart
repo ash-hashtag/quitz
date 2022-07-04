@@ -2,10 +2,10 @@ import 'package:quitz/constants/examples.dart';
 import 'package:quitz/models/cardletModel.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
+import '../constants/sensitive.dart';
+
 class server {
   static late Db db;
-  static const dburl =
-      'mongodb+srv://rash_studios:rash_studios@cluster0.vagw5.mongodb.net/quitz?retryWrites=true&w=majority';
   static void init() async {
     try {
       db = await Db.create(dburl);
