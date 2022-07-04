@@ -8,6 +8,7 @@ import 'package:quitz/screens/makeQuesPage.dart';
 import 'package:quitz/themes.dart';
 import 'package:quitz/widgets/cardlet.dart';
 
+import 'bin/system.dart';
 import 'constants/examples.dart';
 import './bin/db.dart';
 
@@ -50,7 +51,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    server.getQuestions(10).then((value) => setState(() => questions = value));
+    server
+        .getQuestions(10)
+        .then((value) => setState(() => questions = value))
+        .onError((error, stackTrace) => System.showSnackBar(
+            'Error getting ques $error on $stackTrace', context));
   }
 
   @override

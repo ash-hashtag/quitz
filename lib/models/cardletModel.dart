@@ -21,7 +21,7 @@ class CardletModel {
   static CardletModel fromMap(Map<String, dynamic> map) {
     return CardletModel(
       question: map['q'],
-      choices: map['c'],
+      choices: List<String>.from(map['c'] ?? map['mc'] ?? []),
       type: map['c'] != null
           ? QuesType.choice
           : map['mc'] != null
