@@ -1,3 +1,5 @@
+# Sensitive info
+lib/constants/sensitive.dart
 # Miscellaneous
 *.class
 *.log

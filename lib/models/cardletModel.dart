@@ -10,8 +10,11 @@ class CardletModel{
   final QuesType type;
   final int limit;
   final List<String> choices;
+  List<String> answers = [];
+  bool submitted = false;
 
-  const CardletModel({
+
+  CardletModel({
     required this.question,
     this.type = QuesType.choice,
     this.limit = 255,
