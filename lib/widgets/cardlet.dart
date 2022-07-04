@@ -9,7 +9,7 @@ class Cardlet extends StatelessWidget {
   Cardlet({Key? key, required this.question}) : super(key: key);
 
   final tc = TextEditingController();
-  final choicesKey = GlobalKey<_ChoiceState>();
+  final choicesKey = GlobalKey<_ChoicesState>();
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class Cardlet extends StatelessWidget {
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),
-            Choice(
+            Choices(
               key: choicesKey,
               question: question,
             ),
@@ -51,7 +51,7 @@ class Cardlet extends StatelessWidget {
 }
 
 class SubmitButton extends StatefulWidget {
-  final GlobalKey<_ChoiceState>? choiceKey;
+  final GlobalKey<_ChoicesState>? choiceKey;
   const SubmitButton({Key? key, this.choiceKey}) : super(key: key);
 
   @override
@@ -78,24 +78,19 @@ class _SubmitButtonState extends State<SubmitButton> {
   }
 }
 
-class Choice extends StatefulWidget {
+class Choices extends StatefulWidget {
   final CardletModel question;
-  const Choice({Key? key, required this.question}) : super(key: key);
+  const Choices({Key? key, required this.question}) : super(key: key);
 
   @override
-  State<Choice> createState() => _ChoiceState();
+  State<Choices> createState() => _ChoicesState();
 }
 
-class _ChoiceState extends State<Choice> {
+class _ChoicesState extends State<Choices> {
   late List<String> selectedChoice = widget.question.answers;
   late final textQuestion = widget.question.type == QuesType.text;
   late final TextEditingController? tc = TextEditingController(
       text: selectedChoice.isNotEmpty ? selectedChoice.first : null);
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -150,15 +145,28 @@ class _ChoiceState extends State<Choice> {
   Future<void> submit() async {
     if (!widget.question.submitted &&
         (selectedChoice.isNotEmpty || (tc?.text.isNotEmpty ?? false))) {
-      setState(() {
-        if (textQuestion) {
-          selectedChoice = [tc!.text];
-        }
-        widget.question.submitted = true;
-        widget.question.answers = selectedChoice;
-      });
+      if (textQuestion) {
+        selectedChoice = [tc!.text];
+      }
+      try {
+        // await server.db.collection('answers').updateOne(
+        //       mongo.where.eq('_id', widget.question.id),
+        //       mongo.modify.push(
+        //         'a',
+        //         widget.question.type == QuesType.multichoice
+        //             ? selectedChoice
+        //             : selectedChoice.first,
+        //       ),
+        //     );
+        setState(() {
+          widget.question.submitted = true;
+          widget.question.answers = selectedChoice;
+        });
+      } catch (err) {
+        System.showSnackBar("Error submitting answer $err", context);
+      }
     } else {
-      System.showSnackBar('Hooman Error!, did you forgot to answer?', context);
+      System.showSnackBar('Silence is the answer?', context);
     }
   }
 }

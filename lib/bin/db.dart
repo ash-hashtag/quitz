@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quitz/models/cardletModel.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
@@ -32,4 +35,28 @@ class server {
   static void end() async {
     db.close();
   }
+}
+
+class local {
+  static List<Map<String, List<String>>> answers = [];
+
+  static Future<void> init() async {
+    try {
+      await Hive.initFlutter();
+      final box = await Hive.openBox('answers');
+      answers = List<Map<String, List<String>>>.from(box.values);
+    } catch (e) {
+      print('error local storage $e');
+    }
+  }
+}
+
+String randomID({int length = 20}) {
+  const characters =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  final rand = Random();
+  return String.fromCharCodes([
+    for (int i = 0; i < length; i++)
+      characters.codeUnitAt(rand.nextInt(characters.length))
+  ]);
 }

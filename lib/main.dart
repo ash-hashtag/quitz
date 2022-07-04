@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:loop_page_view/loop_page_view.dart';
-import 'package:provider/provider.dart';
-import 'package:quitz/bin/swipe.dart';
 import 'package:quitz/models/cardletModel.dart';
 import 'package:quitz/routes.dart';
 import 'package:quitz/screens/makeQuesPage.dart';
@@ -9,7 +7,6 @@ import 'package:quitz/themes.dart';
 import 'package:quitz/widgets/cardlet.dart';
 
 import 'bin/system.dart';
-import 'constants/examples.dart';
 import './bin/db.dart';
 
 void main() async {
@@ -22,18 +19,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => SwipeProvider(),
-      child: MaterialApp(
-        title: 'Quitz',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.system,
-        theme: Themes.light,
-        darkTheme: Themes.dark,
-        onGenerateRoute: Routes.generateRoutes,
-        initialRoute: '/',
-        home: const HomePage(),
-      ),
+    return MaterialApp(
+      title: 'Quitz',
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
+      theme: Themes.light,
+      darkTheme: Themes.dark,
+      onGenerateRoute: Routes.generateRoutes,
+      initialRoute: '/',
+      home: const HomePage(),
     );
   }
 }
@@ -63,6 +57,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quitz'),
+        actions: [
+          ClipRRect(borderRadius: BorderRadius.circular(50), child: TextButton(child: const Text('My Q&A'), onPressed: () => Navigator.pushNamed(context, ''),),)
+        ],
       ),
       body: LoopPageView.builder(
         itemBuilder: (_, i) => Center(
@@ -82,7 +79,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> askQuestion(BuildContext context) async {
     var question = await Navigator.pushNamed(context, MakeQuesPage.route);
     if (question is CardletModel) {
-      setState(() => quesModels.add(question));
+      setState(() => questions.add(question));
     }
   }
 }

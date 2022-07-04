@@ -33,7 +33,7 @@ class _MakeQuesPageState extends State<MakeQuesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: askQuestion,
-        child: const Text('Ask'),
+        child: const Text('Ask', style: const TextStyle(fontWeight: FontWeight.bold),),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -68,6 +68,7 @@ class _MakeQuesPageState extends State<MakeQuesPage> {
       }
       try {
         final question = CardletModel(
+          id: randomID(),
           question: tc.text,
           choices: quesState.choices,
           type: quesState.value,
