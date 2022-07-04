@@ -5,8 +5,10 @@ import '../bin/system.dart';
 
 class Cardlet extends StatelessWidget {
   final CardletModel question;
+  final bool myQuestion;
 
-  Cardlet({Key? key, required this.question}) : super(key: key);
+  Cardlet({Key? key, required this.question, this.myQuestion = false})
+      : super(key: key);
 
   final tc = TextEditingController();
   final choicesKey = GlobalKey<_ChoicesState>();
@@ -34,15 +36,16 @@ class Cardlet extends StatelessWidget {
               key: choicesKey,
               question: question,
             ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SubmitButton(
-                  choiceKey: choicesKey,
+            if (!myQuestion)
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SubmitButton(
+                    choiceKey: choicesKey,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

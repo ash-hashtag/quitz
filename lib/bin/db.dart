@@ -39,6 +39,7 @@ class server {
 
 class local {
   static List<Map<String, List<String>>> answers = [];
+  static List<CardletModel> questions = [];
 
   static Future<void> init() async {
     try {

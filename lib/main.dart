@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:loop_page_view/loop_page_view.dart';
 import 'package:quitz/models/cardletModel.dart';
 import 'package:quitz/routes.dart';
+import 'package:quitz/screens/Q&Apage.dart';
 import 'package:quitz/screens/makeQuesPage.dart';
 import 'package:quitz/themes.dart';
 import 'package:quitz/widgets/cardlet.dart';
@@ -58,7 +59,13 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Quitz'),
         actions: [
-          ClipRRect(borderRadius: BorderRadius.circular(50), child: TextButton(child: const Text('My Q&A'), onPressed: () => Navigator.pushNamed(context, ''),),)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(50),
+            child: TextButton(
+              child: const Text('My Q&A'),
+              onPressed: () => Navigator.pushNamed(context, QnAPage.route),
+            ),
+          )
         ],
       ),
       body: LoopPageView.builder(

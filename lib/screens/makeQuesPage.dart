@@ -33,7 +33,10 @@ class _MakeQuesPageState extends State<MakeQuesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: askQuestion,
-        child: const Text('Ask', style: const TextStyle(fontWeight: FontWeight.bold),),
+        child: const Text(
+          'Ask',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -67,14 +70,18 @@ class _MakeQuesPageState extends State<MakeQuesPage> {
         }
       }
       try {
-        final question = CardletModel(
-          id: randomID(),
-          question: tc.text,
-          choices: quesState.choices,
-          type: quesState.value,
+        local.questions.add(
+          CardletModel(
+            id: randomID(),
+            question: tc.text,
+            choices: quesState.choices,
+            type: quesState.value,
+          ),
         );
-        await server.db.collection('questions').insert(question.toMap());
-        Navigator.pop(context, question);
+        await server.db
+            .collection('questions')
+            .insert(local.questions.last.toMap());
+        Navigator.pop(context, local.questions.last);
       } catch (e) {
         System.showSnackBar("Can't ask question right now $e", context);
       }
