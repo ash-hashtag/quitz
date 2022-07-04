@@ -11,8 +11,8 @@ import 'package:quitz/widgets/cardlet.dart';
 import 'constants/examples.dart';
 import './bin/db.dart';
 
-void main() {
-  server.init();
+void main() async {
+  await server.init();
   runApp(const MyApp());
 }
 
@@ -46,6 +46,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  List<CardletModel> questions = [];
+  @override
+  void initState() {
+    super.initState();
+    server.getQuestions(10).then((value) => setState(() => questions = value));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,12 +60,13 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Quitz'),
       ),
       body: LoopPageView.builder(
-          itemBuilder: (_, i) => Center(
-                child: Cardlet(
-                  question: quesModels[i],
-                ),
-              ),
-          itemCount: quesModels.length),
+        itemBuilder: (_, i) => Center(
+          child: Cardlet(
+            question: questions[i],
+          ),
+        ),
+        itemCount: questions.length,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => askQuestion(context),
         child: const Icon(Icons.add),
@@ -68,7 +76,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> askQuestion(BuildContext context) async {
     var question = await Navigator.pushNamed(context, MakeQuesPage.route);
-    if ( question is CardletModel) {
+    if (question is CardletModel) {
       setState(() => quesModels.add(question));
     }
   }

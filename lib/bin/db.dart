@@ -5,7 +5,7 @@ import '../constants/sensitive.dart';
 
 class server {
   static late Db db;
-  static void init() async {
+  static Future<void> init() async {
     try {
       db = await Db.create(dburl);
       await db.open();
