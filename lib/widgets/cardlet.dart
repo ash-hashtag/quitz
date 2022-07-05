@@ -1,4 +1,6 @@
+import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
+import 'package:quitz/bin/db.dart';
 import 'package:quitz/models/cardletModel.dart';
 
 import '../bin/system.dart';
@@ -18,9 +20,10 @@ class Cardlet extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(8.0),
       padding: const EdgeInsets.all(8.0),
-      child: Card(
-        elevation: 10,
-        child: Column(
+      child: FlipCard(
+        back: Container(color: Colors.red),
+        flipOnTouch: false,
+        front: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -37,20 +40,33 @@ class Cardlet extends StatelessWidget {
               question: question,
             ),
             if (!myQuestion)
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SubmitButton(
-                    choiceKey: choicesKey,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (question.answers.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextButton(
+                        child: const Text('Reveal'),
+                        onPressed: revealAnswer,
+                      ),
+                    ),
+                  Expanded(child: SizedBox()),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SubmitButton(
+                      choiceKey: choicesKey,
+                    ),
                   ),
-                ),
+                ],
               ),
           ],
         ),
       ),
     );
   }
+
+  void revealAnswer() {}
 }
 
 class SubmitButton extends StatefulWidget {
@@ -62,17 +78,20 @@ class SubmitButton extends StatefulWidget {
 }
 
 class _SubmitButtonState extends State<SubmitButton> {
+  bool isSubmitted() => local.answers.any((element) =>
+      element.first == widget.choiceKey!.currentState!.widget.question.id);
+
   @override
   Widget build(BuildContext context) {
     return Card(
       child: TextButton(
-        onPressed: widget.choiceKey!.currentState!.widget.question.submitted
+        onPressed: isSubmitted()
             ? null
             : () => widget.choiceKey!.currentState!
                 .submit()
                 .whenComplete(() => setState(() {})),
         child: Text(
-          widget.choiceKey!.currentState!.widget.question.submitted
+          widget.choiceKey!.currentState!.widget.question.answers.isNotEmpty
               ? 'Submitted'
               : 'Submit',
         ),
@@ -106,8 +125,8 @@ class _ChoicesState extends State<Choices> {
     return textQuestion
         ? Padding(
             padding: const EdgeInsets.all(16.0),
-            child:
-                TextField(controller: tc, enabled: !widget.question.submitted),
+            child: TextField(
+                controller: tc, enabled: widget.question.answers.isEmpty),
           )
         : Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -117,7 +136,7 @@ class _ChoicesState extends State<Choices> {
                   margin: const EdgeInsets.all(8.0),
                   child: ListTile(
                     title: Text(i),
-                    onTap: widget.question.submitted
+                    onTap: widget.question.answers.isNotEmpty
                         ? null
                         : () => setState(
                               () => widget.question.type == QuesType.multichoice
@@ -146,28 +165,23 @@ class _ChoicesState extends State<Choices> {
   }
 
   Future<void> submit() async {
-    if (!widget.question.submitted &&
+    if (widget.question.answers.isEmpty &&
         (selectedChoice.isNotEmpty || (tc?.text.isNotEmpty ?? false))) {
       if (textQuestion) {
         selectedChoice = [tc!.text];
       }
-      try {
-        // await server.db.collection('answers').updateOne(
-        //       mongo.where.eq('_id', widget.question.id),
-        //       mongo.modify.push(
-        //         'a',
-        //         widget.question.type == QuesType.multichoice
-        //             ? selectedChoice
-        //             : selectedChoice.first,
-        //       ),
-        //     );
-        setState(() {
-          widget.question.submitted = true;
-          widget.question.answers = selectedChoice;
-        });
-      } catch (err) {
-        System.showSnackBar("Error submitting answer $err", context);
-      }
+      await server.submitAnwer(widget.question, selectedChoice);
+      setState(() {});
+      // try {
+      //   await server.db.collection('answers').insert({
+      //     '_id': randomID(),
+      //     'q': widget.question.id,
+      //     'a': selectedChoice,
+      //   });
+      //   setState(() => widget.question.answers = selectedChoice);
+      // } catch (err) {
+      //   System.showSnackBar("Error submitting answer $err", context);
+      // }
     } else {
       System.showSnackBar('Silence is the answer?', context);
     }

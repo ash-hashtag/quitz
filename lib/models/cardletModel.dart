@@ -1,5 +1,3 @@
-import 'package:quitz/bin/db.dart';
-
 enum QuesType {
   choice,
   multichoice,
@@ -13,7 +11,6 @@ class CardletModel {
   final int limit;
   final List<String> choices;
   List<String> answers = [];
-  bool submitted = false;
 
   CardletModel({
     required this.id,
@@ -25,19 +22,32 @@ class CardletModel {
   });
 
   static CardletModel fromMap(Map<String, dynamic> map) {
+    List<String> answers = [];
+    var choices = List<String>.from(map['mc'] ?? map['c'] ?? []);
+    if (map['mc'] ?? map['c'] != null) {
+      if (map['a'] != null) {
+        var combination = map['a'].codeUnitAt(0);
+        var optionIndex = 1;
+        for (final i in choices) {
+          if (optionIndex == optionIndex & combination) {
+            answers.add(i);
+          }
+          optionIndex <<= 1;
+        }
+      }
+    } else if (map['a'] != null) {
+      answers = [map['a']];
+    }
     return CardletModel(
       id: map['_id'],
       question: map['q'],
-      choices: List<String>.from(map['c'] ?? map['mc'] ?? []),
+      choices: choices,
       type: map['c'] != null
           ? QuesType.choice
           : map['mc'] != null
               ? QuesType.multichoice
               : QuesType.text,
-      answers: local.answers
-          .firstWhere((element) => element.keys.first == map['_id'])
-          .values
-          .first,
+      answers: answers,
     );
   }
 
@@ -47,6 +57,19 @@ class CardletModel {
       'q': question,
       if (type == QuesType.choice) 'c': choices,
       if (type == QuesType.multichoice) 'mc': choices,
+      if (answers.isNotEmpty) 'a': answers,
     };
   }
+}
+
+class Pair {
+  final String first;
+  final List<String> last;
+
+  Pair(this.first, this.last);
+
+  Map<String, List<String>> toMap() => {first: last};
+
+  static Pair fromMap(Map<String, List<String>> map) =>
+      Pair(map.keys.first, map.values.first);
 }
