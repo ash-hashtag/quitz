@@ -16,12 +16,12 @@ class _QnAPageState extends State<QnAPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('My Q&A'),
       ),
       body: LoopPageView.builder(
         itemBuilder: (_, i) => Cardlet(
           question: local.questions[i],
-          myQuestion: true,
         ),
         itemCount: local.questions.length,
       ),

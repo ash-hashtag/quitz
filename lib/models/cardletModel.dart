@@ -10,7 +10,8 @@ class CardletModel {
   final QuesType type;
   final int limit;
   final List<String> choices;
-  List<String> answers = [];
+  List<String> answers;
+  List<int> answerCounts;
 
   CardletModel({
     required this.id,
@@ -19,22 +20,20 @@ class CardletModel {
     this.limit = 255,
     this.choices = const [],
     this.answers = const [],
+    this.answerCounts = const [],
   });
 
   static CardletModel fromMap(Map<String, dynamic> map) {
     List<String> answers = [];
+    List<int> answerCounts = [];
     var choices = List<String>.from(map['mc'] ?? map['c'] ?? []);
-    if (map['mc'] ?? map['c'] != null) {
-      if (map['a'] != null) {
-        var combination = map['a'].codeUnitAt(0);
-        var optionIndex = 1;
-        for (final i in choices) {
-          if (optionIndex == optionIndex & combination) {
-            answers.add(i);
-          }
-          optionIndex <<= 1;
-        }
-      }
+    var type = map['mc'] != null
+        ? QuesType.multichoice
+        : map['c'] != null
+            ? QuesType.choice
+            : QuesType.text;
+    if (choices.isNotEmpty) {
+      answerCounts = List<int>.from(map['a']);
     } else if (map['a'] != null) {
       answers = [map['a']];
     }
@@ -42,12 +41,9 @@ class CardletModel {
       id: map['_id'],
       question: map['q'],
       choices: choices,
-      type: map['c'] != null
-          ? QuesType.choice
-          : map['mc'] != null
-              ? QuesType.multichoice
-              : QuesType.text,
+      type: type,
       answers: answers,
+      answerCounts: answerCounts,
     );
   }
 

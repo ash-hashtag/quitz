@@ -28,6 +28,7 @@ class Themes {
     ),
     cardTheme: const CardTheme(
         color: Colors.white,
+        elevation: 10,
         shadowColor: Colors.purple,
         surfaceTintColor: Colors.purple),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -64,8 +65,11 @@ class Themes {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-    ), colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.black),
+    ),
+    colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.black),
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.purple),
   );
+
   static final dark = ThemeData(
     secondaryHeaderColor: Colors.white,
     primaryColor: Colors.black,
@@ -93,6 +97,7 @@ class Themes {
     ),
     cardTheme: const CardTheme(
         color: Colors.black,
+        elevation: 10,
         shadowColor: Colors.purple,
         surfaceTintColor: Colors.purple),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -125,14 +130,15 @@ class Themes {
       ),
     ),
     listTileTheme: ListTileThemeData(
-      selectedTileColor: Colors.purple,
-      selectedColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      iconColor: Colors.white
-    ),
-  popupMenuTheme: const PopupMenuThemeData(textStyle: TextStyle(color: Colors.black)),
-  iconTheme: const IconThemeData(color: Colors.white)
+        selectedTileColor: Colors.black,
+        selectedColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        iconColor: Colors.white),
+    popupMenuTheme:
+        const PopupMenuThemeData(textStyle: TextStyle(color: Colors.black)),
+    iconTheme: const IconThemeData(color: Colors.white),
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.purple),
   );
 }

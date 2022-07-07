@@ -11,6 +11,7 @@ import 'bin/system.dart';
 import './bin/db.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await server.init();
   runApp(const MyApp());
 }
@@ -47,7 +48,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     server
-        .getQuestions(10)
+        .getQuestions(2)
         .then((value) => setState(() => questions = value))
         .onError((error, stackTrace) => System.showSnackBar(
             'Error getting ques $error on $stackTrace', context));
@@ -55,6 +56,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    MyWidget();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quitz'),
@@ -88,5 +90,33 @@ class _HomePageState extends State<HomePage> {
     if (question is CardletModel) {
       setState(() => questions.add(question));
     }
+  }
+}
+
+class MyWidget extends StatefulWidget {
+  const MyWidget({Key? key}) : super(key: key);
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    print('init ${widget.hashCode}');
+  }
+
+@override
+  void dispose() {
+    // TODO: implement dispose
+    print('disp ${widget.hashCode}');
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+   return Container(); 
   }
 }

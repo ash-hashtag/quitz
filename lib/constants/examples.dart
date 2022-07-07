@@ -12,13 +12,24 @@ List<CardletModel> makeExamples(int length) {
     var choicesLength = rand.nextInt(8);
     List<String> choices = [for (int i = 0; i < choicesLength; i++) randomID()];
     List<String> answers = [
-      for (final i in choices)
-        if (rand.nextBool()) i
+      if (choices.isEmpty)
+        randomID(length: 50)
+      else
+        for (final i in choices)
+          if (rand.nextBool()) i
     ];
     length--;
 
     examples.add(CardletModel(
-        id: randomID(), question: ques, choices: choices, answers: answers));
+        id: randomID(),
+        type: choices.isEmpty
+            ? QuesType.text
+            : rand.nextBool()
+                ? QuesType.multichoice
+                : QuesType.choice,
+        question: ques,
+        choices: choices,
+        answers: answers));
   }
   return examples;
 }

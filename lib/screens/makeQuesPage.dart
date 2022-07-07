@@ -70,18 +70,23 @@ class _MakeQuesPageState extends State<MakeQuesPage> {
         }
       }
       try {
-        local.questions.add(
-          CardletModel(
-            id: randomID(),
-            question: tc.text,
-            choices: quesState.choices,
-            type: quesState.value,
-          ),
+        var result = await server.askQuestion(
+            tc.text, quesState.choices, quesState.value);
+        // local.questions.add(
+        //   CardletModel(
+        //     id: randomID(),
+        //     question: tc.text,
+        //     choices: quesState.choices,
+        //     type: quesState.value,
+        //   ),
+        // );
+        // await server.db
+        //     .collection('questions')
+        //     .insert(local.questions.last.toMap());
+        FocusManager.instance.primaryFocus?.unfocus();
+        Navigator.pop(
+          context,
         );
-        await server.db
-            .collection('questions')
-            .insert(local.questions.last.toMap());
-        Navigator.pop(context, local.questions.last);
       } catch (e) {
         System.showSnackBar("Can't ask question right now $e", context);
       }
@@ -169,7 +174,12 @@ class _QuesTypeWidgetState extends State<QuesTypeWidget> {
       System.showSnackBar('You forgot to type?', context);
       return;
     }
-    setState(() => choices.add(tc.text));
-    tc.clear();
+    if (choices.length < (value == QuesType.choice ? 10 : 5)) {
+      setState(() => choices.add(tc.text));
+      tc.clear();
+    } else {
+      System.showSnackBar(
+          'If you want more choices, contact us, tap this', context);
+    }
   }
 }
