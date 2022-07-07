@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:loop_page_view/loop_page_view.dart';
+import 'package:provider/provider.dart';
+import 'package:quitz/bin/ad_state.dart';
 import 'package:quitz/models/cardletModel.dart';
 import 'package:quitz/routes.dart';
 import 'package:quitz/screens/Q&Apage.dart';
@@ -13,7 +18,12 @@ import './bin/db.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await server.init();
-  runApp(const MyApp());
+  final initAdsFuture = MobileAds.instance.initialize();
+  final adState = AdState(initAdsFuture);
+  runApp(Provider.value(
+    value: adState,
+    builder: (_, child) => const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -54,6 +64,40 @@ class _HomePageState extends State<HomePage> {
             'Error getting ques $error on $stackTrace', context));
   }
 
+  late StreamSubscription adstream;
+
+  BannerAd? bannerAd;
+
+  NativeAd? nativeAd;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final adState = Provider.of<AdState>(context);
+    adState.initialization.then((value) => setState(() {
+          bannerAd = BannerAd(
+              size: AdSize.banner,
+              adUnitId: AdState.testBannerId,
+              request: AdRequest(),
+              listener: AdState.bannerAdListener)
+            ..load();
+          nativeAd = NativeAd(
+              adUnitId: AdState.nativeTestId,
+              factoryId: 'listTile',
+              listener: AdState.nativeAdListener,
+              request: AdRequest())
+            ..load().then((value) => setState(() => isAdLoaded = true));
+        }));
+  }
+
+  bool isAdLoaded = false;
+
+  @override
+  void dispose() {
+    super.dispose();
+    adstream.cancel();
+  }
+
   @override
   Widget build(BuildContext context) {
     MyWidget();
@@ -70,14 +114,31 @@ class _HomePageState extends State<HomePage> {
           )
         ],
       ),
+      bottomSheet: bannerAd != null
+          ? Container(
+              color: Theme.of(context).primaryColor,
+              height: bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: bannerAd!))
+          : null,
       body: LoopPageView.builder(
         itemBuilder: (_, i) => Center(
-          child: Cardlet(
-            question: questions[i],
-          ),
+          child: i < questions.length
+              ? Cardlet(
+                  question: questions[i],
+                )
+              : Container(
+                
+                  color: Colors.blue,
+                  child: isAdLoaded
+                      ? AdWidget(ad: nativeAd!)
+                      : CircularProgressIndicator.adaptive(),
+                ),
         ),
-        itemCount: questions.length,
+        itemCount: questions.length + 1,
       ),
+
+      //if (bannerAd != null) AdWidget(ad: bannerAd!)
+
       floatingActionButton: FloatingActionButton(
         onPressed: () => askQuestion(context),
         child: const Icon(Icons.add),
@@ -108,7 +169,7 @@ class _MyWidgetState extends State<MyWidget> {
     print('init ${widget.hashCode}');
   }
 
-@override
+  @override
   void dispose() {
     // TODO: implement dispose
     print('disp ${widget.hashCode}');
@@ -117,6 +178,6 @@ class _MyWidgetState extends State<MyWidget> {
 
   @override
   Widget build(BuildContext context) {
-   return Container(); 
+    return Container();
   }
 }
