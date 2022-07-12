@@ -70,8 +70,8 @@ class _MakeQuesPageState extends State<MakeQuesPage> {
         }
       }
       try {
-        var result = await server.askQuestion(
-            tc.text, quesState.choices, quesState.value);
+        var result = await api.askQuestion(
+            tc.text, quesState.choices, multi: quesState.value == QuesType.multichoice);
         // local.questions.add(
         //   CardletModel(
         //     id: randomID(),

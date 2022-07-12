@@ -12,7 +12,6 @@ import 'package:quitz/screens/makeQuesPage.dart';
 import 'package:quitz/themes.dart';
 import 'package:quitz/widgets/cardlet.dart';
 
-import 'bin/system.dart';
 import './bin/db.dart';
 
 void main() async {
@@ -56,6 +55,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    api.init();
 	api.getQuestions(10).then((value) => setState(() => questions = value));
   }
 
@@ -68,22 +68,23 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final adState = Provider.of<AdState>(context);
-    adState.initialization.then((value) => setState(() {
-          bannerAd = BannerAd(
-              size: AdSize.banner,
-              adUnitId: AdState.testBannerId,
-              request: AdRequest(),
-              listener: AdState.bannerAdListener)
-            ..load();
-          nativeAd = NativeAd(
-              adUnitId: AdState.nativeTestId,
-              factoryId: 'listTile',
-              listener: AdState.nativeAdListener(
-                  () => isAdLoaded = true),
-              request: AdRequest())
-            ..load();
-        }));
+    // final adState = Provider.of<AdState>(context);
+    // adState.initialization.then((value) => setState(() {
+    //       bannerAd = BannerAd(
+    //           size: AdSize.banner,
+    //           adUnitId: AdState.testBannerId,
+    //           request: AdRequest(),
+    //           listener: AdState.bannerAdListener)
+    //         ..load();
+    //       nativeAd = NativeAd(
+    //           adUnitId: AdState.nativeTestId,
+    //           factoryId: 'listTile',
+    //           listener: AdState.nativeAdListener(
+    //               () => isAdLoaded = true),
+    //           request: AdRequest())
+    //         ..load();
+    //         nativeAd = null;
+    //     }));
   }
 
   bool isAdLoaded = false;
@@ -127,13 +128,13 @@ class _HomePageState extends State<HomePage> {
                   margin: const EdgeInsets.all(30.0),
                   height: MediaQuery.of(context).size.height / 2,
                   child: Card(
-                    child: isAdLoaded
+                    child: isAdLoaded && nativeAd != null
                         ? AdWidget(ad: nativeAd!)
                         : CircularProgressIndicator.adaptive(),
                   ),
                 ),
               ),
-        itemCount: questions.length + 1,
+        itemCount: questions.length,
       ),
 
       //if (bannerAd != null) AdWidget(ad: bannerAd!)

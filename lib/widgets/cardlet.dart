@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:quitz/bin/db.dart';
 import 'package:quitz/models/cardletModel.dart';
@@ -25,15 +27,10 @@ class Cardlet extends StatelessWidget {
       child: FlipCard(
         key: flipKey,
         // back: Container(height: 100, color: Colors.red,),
-        back: myQuestion && question.type == QuesType.text
-            ? ChooseAnswerWidget(
-                question: question,
-                flip: flip,
-              )
-            : AnswersWidget(
-                flip: flip,
-                question: question,
-              ),
+        back: AnswersWidget(
+          flip: flip,
+          question: question,
+        ),
         front: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -91,8 +88,8 @@ class SubmitButton extends StatefulWidget {
 }
 
 class _SubmitButtonState extends State<SubmitButton> {
-  bool isSubmitted() => local.answers.any((element) =>
-      element.first == widget.choiceKey!.currentState!.widget.question.id);
+  bool isSubmitted() => local.myAnswers.any((element) =>
+      element.key == widget.choiceKey!.currentState!.widget.question.id);
 
   @override
   Widget build(BuildContext context) {
@@ -132,10 +129,10 @@ class _ChoicesState extends State<Choices> {
       return;
     }
     if (selectedChoice.isEmpty) {
-      var index = local.answers
-          .indexWhere((element) => element.first == widget.question.id);
+      var index = local.myAnswers
+          .indexWhere((element) => element.key == widget.question.id);
       if (index != -1) {
-        selectedChoice = local.answers[index].last;
+        selectedChoice = local.myAnswers[index].value;
         isSubmitted = true;
       }
     }
@@ -163,8 +160,8 @@ class _ChoicesState extends State<Choices> {
                   child: ListTile(
                     selectedTileColor: Colors.purple,
                     title: Text(i),
-                    onTap: local.answers.any(
-                            (element) => element.first == widget.question.id)
+                    onTap: local.myAnswers.any(
+                            (element) => element.key == widget.question.id)
                         ? null
                         : () => setState(
                               () => widget.question.type == QuesType.multichoice
@@ -200,7 +197,7 @@ class _ChoicesState extends State<Choices> {
       if (textQuestion) {
         selectedChoice = [tc!.text];
       }
-	  await api.submitAnwer(widget.question, selectedChoice);
+      await api.submitAnwer(widget.question, selectedChoice);
       setState(() => isSubmitted = true);
       // try {
       //   await server.db.collection('answers').insert({
@@ -313,40 +310,43 @@ class _AnswersWidgetState extends State<AnswersWidget> {
   late final values = showActualValues();
 
   List<Widget> getChildren() {
-    if (widget.question.type == QuesType.choice) {
-      return [
-        for (int i = 0; i < widget.question.choices.length; i++)
-          ListTile(
-            title: Text(
-              '${widget.question.choices[i]} (${widget.question.answerCounts[i] * 100 ~/ totalCount}%)',
-            ),
-          ),
-        TextButton(onPressed: widget.flip, child: const Text('question')),
-      ];
-    } else if (widget.question.type == QuesType.multichoice) {
-      final highest =
-          widget.question.answerCounts.reduce((a, b) => a > b ? a : b);
-      return [
-        for (int i = 0; i < widget.question.choices.length; i++)
-          if ((widget.question.answerCounts[i] * 100 ~/ highest) > 50)
+    switch (widget.question.type) {
+      case QuesType.choice:
+        return [
+          for (int i = 0; i < widget.question.choices.length; i++)
             ListTile(
               title: Text(
-                widget.question.choices[i],
+                '${widget.question.choices[i]} (${widget.question.answerCounts[i] * 100 ~/ totalCount}%)',
               ),
             ),
-        Row(
-          children: [
-            TextButton(onPressed: widget.flip, child: const Text('question')),
-            TextButton(
-                onPressed: () => setState(() => showValues = true),
-                child: const Text('Values')),
-          ],
-        ),
-      ];
+          TextButton(onPressed: widget.flip, child: const Text('question')),
+        ];
+      case QuesType.multichoice:
+        final highest =
+            widget.question.answerCounts.reduce((a, b) => a > b ? a : b);
+        return [
+          for (int i = 0; i < widget.question.choices.length; i++)
+            if ((widget.question.answerCounts[i] * 100 ~/ highest) > 50)
+              ListTile(
+                title: Text(
+                  widget.question.choices[i],
+                ),
+              ),
+          Row(
+            children: [
+              TextButton(onPressed: widget.flip, child: const Text('question')),
+              TextButton(
+                  onPressed: () => setState(() => showValues = true),
+                  child: const Text('Values')),
+            ],
+          ),
+        ];
+      default:
+        return [
+          Text(widget.question.answers[Random().nextInt(widget.question.answers.length)]),
+          TextButton(onPressed: widget.flip, child: const Text('question')),
+        ];
     }
-    return [
-      TextButton(onPressed: widget.flip, child: const Text('question')),
-    ];
   }
 
   bool showValues = false;

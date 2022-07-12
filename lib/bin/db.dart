@@ -1,15 +1,10 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quitz/models/cardletModel.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-
-import '../constants/sensitive.dart';
 
 /* class server { */
 /*   static late Db db; */
@@ -128,10 +123,18 @@ import '../constants/sensitive.dart';
 /*   } */
 /* } */
 
+class pear {
+  final String key;
+  final dynamic value;
+
+  pear(this.key, this.value);
+}
+
 class local {
-  static late String myID;
-  static List<Pair> answers = [];
   static List<CardletModel> questions = [];
+
+  static List<String> myQuestions = [];
+  static List<pear> myAnswers = [];
 
   static Future<void> init() async {
     // try {
@@ -156,7 +159,6 @@ class local {
 
   static Future<void> end() async {
     Map<String, List<String>> map = {};
-    answers.forEach((element) => map.addAll(element.toMap()));
     Hive.openBox('answers').then((value) => value
       ..clear
       ..putAll(map));
@@ -173,66 +175,94 @@ String randomID({int length = 20}) {
   ]);
 }
 
-class api{
-	static const DBURL = 'https://quitz-ash-hashtag.koyeb.app/';
-	
-	static Future<List<CardletModel>> getQuestions(int len) async {
-		List<CardletModel> questions = [];	
-		final response = await http.get(Uri.parse(DBURL + '/getques/$len'));
-		if (response.statusCode == 200){
-			final data = jsonDecode(response.body);
-			final question = CardletModel.fromMap(data);
-			if (question != null){
-				questions.add(question);
-			}
-		}
-		return questions;	
-	}
+class api {
+  static void init() {
+  }
 
-	static Future<bool> submitAnwer(CardletModel question, List<String> answers) async {
-		if (question.type != QuesType.text) {
-			var selectedChoice = 0;
-			for (int i = 0; i < answers.length; i++){
-				final index = question.choices.indexOf(answers[i]);
-				if (index != -1){
-					selectedChoice += 1 << index;
-				}
-			}
-			final result = await http.get(Uri.parse(DBURL + '/postans/${selectedChoice}/${question.id}'));
+  static const DBURL = 'https://quitz-ash-hashtag.koyeb.app';
 
-			if (result.statusCode == HttpStatus.ok){
-				return true;	
-			}
-		} else {
-			final result = await http.get(Uri.parse(DBURL + '/postans/${answers.first}/${question.id}'));
-			if (result.statusCode == HttpStatus.ok){
-				return true;
-			}
-		}
+  static Future<List<CardletModel>> getQuestions(int len) async {
+    List<CardletModel> questions = [];
+    try {
+      final response = await http.get(Uri.parse(DBURL + '/getques/$len'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        for (final ques in data) {
+          final question = CardletModel.fromMap(ques);
+          if (question != null) {
+            questions.add(question);
+          }
+        }
+      }
+    } catch (e) {
+      print('err $e');
+    }
+    return questions;
+  }
 
-		return false;
-	}
+  static Future<bool> submitAnwer(
+      CardletModel question, List<String> answers) async {
+    if (question.type != QuesType.text) {
+      var selectedChoice = 0;
+      for (int i = 0; i < answers.length; i++) {
+        if (question.type == QuesType.multichoice) {
+          final index = question.choices.indexOf(answers[i]);
+          if (index != -1) {
+            selectedChoice += 1 << index;
+          }
+        } else if (question.type == QuesType.choice) {
+          selectedChoice = question.choices.indexOf(answers.first);
+        }
+      }
+      if (selectedChoice > 0) {
+        final result = await http.get(
+            Uri.parse(DBURL + '/postans/${selectedChoice}/${question.id}'));
 
-	static Future<CardletModel?> askQuestion(String question, List<String> choices, {bool multi = false}) async {
-		if (choices.isEmpty){
-			final result = await http.get(Uri.parse(DBURL + '/freeques/' + question));
-			if (result.body.isNotEmpty) {
-				return CardletModel(id: result.body, question: question, type: QuesType.text);
-			}
-		} else {
-			final Map<String, dynamic> map = {
-				'q': question,
-				if (multi) 'mc' : choices
-				else 'c' : choices,
-			};
-			final result = await http.post(Uri.parse(DBURL + '/postques'), body: map);
-			if (result.body.isNotEmpty){
-				map['id'] = result.body;
-				return CardletModel.fromMap(map);
-			}
-		}
-		return null;
-	}
+        if (result.statusCode == HttpStatus.ok) {
+          local.myAnswers.add(pear(question.id, answers));
+          return true;
+        }
+      }
+    } else {
+      final result = await http
+          .get(Uri.parse(DBURL + '/postans/${answers.first}/${question.id}'));
+      if (result.statusCode == HttpStatus.ok) {
+        local.myAnswers.add(pear(question.id, answers));
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  static Future<CardletModel?> askQuestion(
+      String question, List<String> choices,
+      {bool multi = false}) async {
+    if (choices.isEmpty) {
+      final result = await http.get(Uri.parse(DBURL + '/freeques/' + question));
+      if (result.body.isNotEmpty) {
+        final _question = CardletModel(
+            id: result.body, question: question, type: QuesType.text);
+        local.myQuestions.add(result.body);
+        return _question;
+      }
+    } else {
+      final Map<String, dynamic> map = {
+        'q': question,
+        if (multi) 'mc': choices else 'c': choices,
+      };
+      final result = await http.post(Uri.parse(DBURL + '/postques'),
+          body: jsonEncode(map));
+      if (result.body.isNotEmpty) {
+        map['id'] = result.body;
+        final _ques = CardletModel.fromMap(map);
+        if (_ques != null) {
+          local.questions.add(_ques);
+          local.myQuestions.add(result.body);
+        }
+        return _ques;
+      }
+    }
+    return null;
+  }
 }
-
-
