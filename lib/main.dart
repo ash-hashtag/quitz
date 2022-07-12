@@ -84,9 +84,10 @@ class _HomePageState extends State<HomePage> {
           nativeAd = NativeAd(
               adUnitId: AdState.nativeTestId,
               factoryId: 'listTile',
-              listener: AdState.nativeAdListener,
+              listener: AdState.nativeAdListener(
+                  () => isAdLoaded = true),
               request: AdRequest())
-            ..load().then((value) => setState(() => isAdLoaded = true));
+            ..load();
         }));
   }
 
@@ -121,19 +122,23 @@ class _HomePageState extends State<HomePage> {
               child: AdWidget(ad: bannerAd!))
           : null,
       body: LoopPageView.builder(
-        itemBuilder: (_, i) => Center(
-          child: i < questions.length
-              ? Cardlet(
+        itemBuilder: (_, i) => i < questions.length
+            ? Center(
+                child: Cardlet(
                   question: questions[i],
-                )
-              : Container(
-                
-                  color: Colors.blue,
-                  child: isAdLoaded
-                      ? AdWidget(ad: nativeAd!)
-                      : CircularProgressIndicator.adaptive(),
                 ),
-        ),
+              )
+            : Center(
+                child: Container(
+                  margin: const EdgeInsets.all(30.0),
+                  height: MediaQuery.of(context).size.height / 2,
+                  child: Card(
+                    child: isAdLoaded
+                        ? AdWidget(ad: nativeAd!)
+                        : CircularProgressIndicator.adaptive(),
+                  ),
+                ),
+              ),
         itemCount: questions.length + 1,
       ),
 

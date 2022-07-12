@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdState {
@@ -24,8 +25,8 @@ class AdState {
     onAdWillDismissScreen: (ad) => print('Ad dismissed ${ad.adUnitId}'),
   );
 
-  static final nativeAdListener = NativeAdListener(
-    onAdLoaded: (ad) => print('Native Ad loaded ${ad.adUnitId}'),
+  static nativeAdListener(VoidCallback onAddloaded) => NativeAdListener(
+    onAdLoaded: (ad) => onAddloaded(),
     onAdClosed: (ad) => print('Native Ad closed ${ad.adUnitId}'),
     onAdClicked: (ad) => print('Native Ad clicked ${ad.adUnitId}'),
     onAdFailedToLoad: (ad, err) =>

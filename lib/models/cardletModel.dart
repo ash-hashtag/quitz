@@ -23,8 +23,9 @@ class CardletModel {
     this.answerCounts = const [],
   });
 
-  static CardletModel fromMap(Map<String, dynamic> map) {
-    List<String> answers = [];
+  static CardletModel? fromMap(Map<String, dynamic> map) {
+    try{
+	List<String> answers = [];
     List<int> answerCounts = [];
     var choices = List<String>.from(map['mc'] ?? map['c'] ?? []);
     var type = map['mc'] != null
@@ -45,6 +46,11 @@ class CardletModel {
       answers: answers,
       answerCounts: answerCounts,
     );
+	}
+	catch(e) {
+		print('error parsing $e');
+		return null;
+	}
   }
 
   Map<String, dynamic> toMap() {

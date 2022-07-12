@@ -1,4 +1,8 @@
+
+import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quitz/models/cardletModel.dart';
@@ -167,3 +171,57 @@ String randomID({int length = 20}) {
       characters.codeUnitAt(rand.nextInt(characters.length))
   ]);
 }
+
+class api{
+	static const DBURL = 'https://quitz-ash-hashtag.koyeb.app/';
+	
+	static Future<List<CardletModel>> getQuestions(int len) async {
+		List<CardletModel> questions = [];	
+		final response = await http.get(Uri.parse(DBURL + '/getques/$len'));
+		if (response.statusCode == 200){
+			final data = jsonDecode(response.body);
+			final question = CardletModel.fromMap(data);
+			if (question != null){
+				questions.add(question);
+			}
+		}
+		return questions;	
+	}
+
+	static Future<bool> submitAnwer(CardletModel question, List<String> answer) async {
+		if (question.type != QuesType.text)	{
+			List<int> choices = [];
+			answer.forEach((ans) {
+				final index = question.choices.indexOf(answer.first);
+
+
+			});
+		}
+		final response = await http.get(Uri.parse(DBURL + '/postans/'));
+
+
+		return false;
+	}
+
+	static Future<CardletModel?> askQuestion(String question, List<String> choices, {bool multi = false}) async {
+		if (choices.isEmpty){
+			final result = await http.get(Uri.parse(DBURL + '/freeques/' + question));
+			if (result.body.isNotEmpty) {
+				return CardletModel(id: result.body, question: question, type: QuesType.text);
+			}
+		} else {
+			final Map<String, dynamic> map = {
+				'q': question,
+				if (multi) 'mc' : choices
+				else 'c' : choices,
+			};
+			final result = await http.post(Uri.parse(DBURL + '/postques'), body: map);
+			if (result.body.isNotEmpty){
+				map['id'] = result.body;
+				return CardletModel.fromMap(map);
+			}
+		}
+	}
+}
+
+
