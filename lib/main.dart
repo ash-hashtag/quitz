@@ -17,7 +17,6 @@ import './bin/db.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await server.init();
   final initAdsFuture = MobileAds.instance.initialize();
   final adState = AdState(initAdsFuture);
   runApp(Provider.value(
@@ -57,11 +56,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    server
-        .getQuestions(2)
-        .then((value) => setState(() => questions = value))
-        .onError((error, stackTrace) => System.showSnackBar(
-            'Error getting ques $error on $stackTrace', context));
+	api.getQuestions(10).then((value) => setState(() => questions = value));
   }
 
   late StreamSubscription adstream;
@@ -101,7 +96,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    MyWidget();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quitz'),
@@ -159,30 +153,30 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class MyWidget extends StatefulWidget {
-  const MyWidget({Key? key}) : super(key: key);
+/* class MyWidget extends StatefulWidget { */
+/*   const MyWidget({Key? key}) : super(key: key); */
 
-  @override
-  State<MyWidget> createState() => _MyWidgetState();
-}
+/*   @override */
+/*   State<MyWidget> createState() => _MyWidgetState(); */
+/* } */
 
-class _MyWidgetState extends State<MyWidget> {
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    print('init ${widget.hashCode}');
-  }
+/* class _MyWidgetState extends State<MyWidget> { */
+/*   @override */
+/*   void initState() { */
+/*     // TODO: implement initState */
+/*     super.initState(); */
+/*     print('init ${widget.hashCode}'); */
+/*   } */
 
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    print('disp ${widget.hashCode}');
-    super.dispose();
-  }
+/*   @override */
+/*   void dispose() { */
+/*     // TODO: implement dispose */
+/*     print('disp ${widget.hashCode}'); */
+/*     super.dispose(); */
+/*   } */
 
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
+/*   @override */
+/*   Widget build(BuildContext context) { */
+/*     return Container(); */
+/*   } */
+/* } */

@@ -36,7 +36,7 @@ class CardletModel {
     if (choices.isNotEmpty) {
       answerCounts = List<int>.from(map['a']);
     } else if (map['a'] != null) {
-      answers = [map['a']];
+      answers = map['a'];
     }
     return CardletModel(
       id: map['_id'],

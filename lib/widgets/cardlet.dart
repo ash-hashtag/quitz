@@ -200,7 +200,7 @@ class _ChoicesState extends State<Choices> {
       if (textQuestion) {
         selectedChoice = [tc!.text];
       }
-      await server.submitAnwer(widget.question, selectedChoice);
+	  await api.submitAnwer(widget.question, selectedChoice);
       setState(() => isSubmitted = true);
       // try {
       //   await server.db.collection('answers').insert({
@@ -218,76 +218,76 @@ class _ChoicesState extends State<Choices> {
   }
 }
 
-class ChooseAnswerWidget extends StatefulWidget {
-  final CardletModel question;
-  final VoidCallback? flip;
-  const ChooseAnswerWidget({Key? key, required this.question, this.flip})
-      : super(key: key);
+/* class ChooseAnswerWidget extends StatefulWidget { */
+/*   final CardletModel question; */
+/*   final VoidCallback? flip; */
+/*   const ChooseAnswerWidget({Key? key, required this.question, this.flip}) */
+/*       : super(key: key); */
 
-  @override
-  State<ChooseAnswerWidget> createState() => _ChooseAnswerWidgetState();
-}
+/*   @override */
+/*   State<ChooseAnswerWidget> createState() => _ChooseAnswerWidgetState(); */
+/* } */
 
-class _ChooseAnswerWidgetState extends State<ChooseAnswerWidget> {
-  @override
-  void initState() {
-    super.initState();
-    chosenOne = widget.question.answers.isNotEmpty
-        ? widget.question.answers.first
-        : null;
-    getAnswers();
-  }
+/* class _ChooseAnswerWidgetState extends State<ChooseAnswerWidget> { */
+/*   @override */
+/*   void initState() { */
+/*     super.initState(); */
+/*     chosenOne = widget.question.answers.isNotEmpty */
+/*         ? widget.question.answers.first */
+/*         : null; */
+/*     getAnswers(); */
+/*   } */
 
-  String? chosenOne;
+/*   String? chosenOne; */
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (gettingAnswers)
-          CircularProgressIndicator.adaptive()
-        else
-          for (final i in answers)
-            ListTile(
-              title: Text(i),
-              onTap: () =>
-                  setState(() => chosenOne = chosenOne == i ? null : i),
-              selected: chosenOne == i,
-              selectedTileColor: Colors.purple,
-            ),
-        Row(
-          children: [
-            TextButton(onPressed: widget.flip, child: const Text('Question')),
-            TextButton(
-                onPressed: chosenOne != null &&
-                        (widget.question.answers.isEmpty ||
-                            widget.question.answers.first != chosenOne)
-                    ? () => server
-                        .chooseAnswer(widget.question, chosenOne!)
-                        .whenComplete(() => setState(() {}))
-                    : null,
-                child: Text(widget.question.answers.isNotEmpty
-                    ? 'Change Answer'
-                    : 'Submit as the \nofficial answer'))
-          ],
-        ),
-      ],
-    );
-  }
+/*   @override */
+/*   Widget build(BuildContext context) { */
+/*     return Column( */
+/*       mainAxisAlignment: MainAxisAlignment.center, */
+/*       mainAxisSize: MainAxisSize.min, */
+/*       children: [ */
+/*         if (gettingAnswers) */
+/*           CircularProgressIndicator.adaptive() */
+/*         else */
+/*           for (final i in answers) */
+/*             ListTile( */
+/*               title: Text(i), */
+/*               onTap: () => */
+/*                   setState(() => chosenOne = chosenOne == i ? null : i), */
+/*               selected: chosenOne == i, */
+/*               selectedTileColor: Colors.purple, */
+/*             ), */
+/*         Row( */
+/*           children: [ */
+/*             TextButton(onPressed: widget.flip, child: const Text('Question')), */
+/*             TextButton( */
+/*                 onPressed: chosenOne != null && */
+/*                         (widget.question.answers.isEmpty || */
+/*                             widget.question.answers.first != chosenOne) */
+/*                     ? () => server */
+/*                         .chooseAnswer(widget.question, chosenOne!) */
+/*                         .whenComplete(() => setState(() {})) */
+/*                     : null, */
+/*                 child: Text(widget.question.answers.isNotEmpty */
+/*                     ? 'Change Answer' */
+/*                     : 'Submit as the \nofficial answer')) */
+/*           ], */
+/*         ), */
+/*       ], */
+/*     ); */
+/*   } */
 
-  List<String> answers = [];
-  bool gettingAnswers = true;
-  void getAnswers() {
-    server
-        .getAnswers(widget.question)
-        .then((value) => setState(() => answers = value))
-        .whenComplete(() => setState(() => gettingAnswers = false));
-  }
+/*   List<String> answers = []; */
+/*   bool gettingAnswers = true; */
+/*   void getAnswers() { */
+/*     server */
+/*         .getAnswers(widget.question) */
+/*         .then((value) => setState(() => answers = value)) */
+/*         .whenComplete(() => setState(() => gettingAnswers = false)); */
+/*   } */
 
-  void makeAnswer() async {}
-}
+/*   void makeAnswer() async {} */
+/* } */
 
 class AnswersWidget extends StatefulWidget {
   final CardletModel question;
