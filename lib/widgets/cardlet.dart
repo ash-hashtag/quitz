@@ -16,9 +16,6 @@ class Cardlet extends StatelessWidget {
   final choicesKey = GlobalKey<_ChoicesState>();
   final flipKey = GlobalKey<FlipCardState>();
 
-  late final myQuestion =
-      local.questions.any((element) => element.id == question.id);
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -189,97 +186,15 @@ class _ChoicesState extends State<Choices> {
       if (textQuestion) {
         selectedChoice = [tc!.text];
       }
-      if (await api.submitAnwer(widget.question, selectedChoice)) {
-        setState(() => isSubmitted = true);
-      } else {
-        System.showSnackBar('failed to submit Answer', context);
-      }
-      // try {
-      //   await server.db.collection('answers').insert({
-      //     '_id': randomID(),
-      //     'q': widget.question.id,
-      //     'a': selectedChoice,
-      //   });
-      //   setState(() => widget.question.answers = selectedChoice);
-      // } catch (err) {
-      //   System.showSnackBar("Error submitting answer $err", context);
-      // }
+      setState(() {
+        api.submitAnwer(widget.question, selectedChoice);
+        isSubmitted = true;
+      });
     } else {
       System.showSnackBar('Silence is the answer?', context);
     }
   }
 }
-
-/* class ChooseAnswerWidget extends StatefulWidget { */
-/*   final CardletModel question; */
-/*   final VoidCallback? flip; */
-/*   const ChooseAnswerWidget({Key? key, required this.question, this.flip}) */
-/*       : super(key: key); */
-
-/*   @override */
-/*   State<ChooseAnswerWidget> createState() => _ChooseAnswerWidgetState(); */
-/* } */
-
-/* class _ChooseAnswerWidgetState extends State<ChooseAnswerWidget> { */
-/*   @override */
-/*   void initState() { */
-/*     super.initState(); */
-/*     chosenOne = widget.question.answers.isNotEmpty */
-/*         ? widget.question.answers.first */
-/*         : null; */
-/*     getAnswers(); */
-/*   } */
-
-/*   String? chosenOne; */
-
-/*   @override */
-/*   Widget build(BuildContext context) { */
-/*     return Column( */
-/*       mainAxisAlignment: MainAxisAlignment.center, */
-/*       mainAxisSize: MainAxisSize.min, */
-/*       children: [ */
-/*         if (gettingAnswers) */
-/*           CircularProgressIndicator.adaptive() */
-/*         else */
-/*           for (final i in answers) */
-/*             ListTile( */
-/*               title: Text(i), */
-/*               onTap: () => */
-/*                   setState(() => chosenOne = chosenOne == i ? null : i), */
-/*               selected: chosenOne == i, */
-/*               selectedTileColor: Colors.purple, */
-/*             ), */
-/*         Row( */
-/*           children: [ */
-/*             TextButton(onPressed: widget.flip, child: const Text('Question')), */
-/*             TextButton( */
-/*                 onPressed: chosenOne != null && */
-/*                         (widget.question.answers.isEmpty || */
-/*                             widget.question.answers.first != chosenOne) */
-/*                     ? () => server */
-/*                         .chooseAnswer(widget.question, chosenOne!) */
-/*                         .whenComplete(() => setState(() {})) */
-/*                     : null, */
-/*                 child: Text(widget.question.answers.isNotEmpty */
-/*                     ? 'Change Answer' */
-/*                     : 'Submit as the \nofficial answer')) */
-/*           ], */
-/*         ), */
-/*       ], */
-/*     ); */
-/*   } */
-
-/*   List<String> answers = []; */
-/*   bool gettingAnswers = true; */
-/*   void getAnswers() { */
-/*     server */
-/*         .getAnswers(widget.question) */
-/*         .then((value) => setState(() => answers = value)) */
-/*         .whenComplete(() => setState(() => gettingAnswers = false)); */
-/*   } */
-
-/*   void makeAnswer() async {} */
-/* } */
 
 class AnswersWidget extends StatefulWidget {
   final CardletModel question;
@@ -323,7 +238,7 @@ class _AnswersWidgetState extends State<AnswersWidget> {
   @override
   void initState() {
     super.initState();
-    if (QuesType.text == widget.question.type){
+    if (QuesType.text == widget.question.type) {
       setAnswer();
     } else {
       answers = getChildren();

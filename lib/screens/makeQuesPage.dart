@@ -69,27 +69,20 @@ class _MakeQuesPageState extends State<MakeQuesPage> {
           return;
         }
       }
-      try {
-        var result = await api.askQuestion(
-            tc.text, quesState.choices, multi: quesState.value == QuesType.multichoice);
-        // local.questions.add(
-        //   CardletModel(
-        //     id: randomID(),
-        //     question: tc.text,
-        //     choices: quesState.choices,
-        //     type: quesState.value,
-        //   ),
-        // );
-        // await server.db
-        //     .collection('questions')
-        //     .insert(local.questions.last.toMap());
-        FocusManager.instance.primaryFocus?.unfocus();
-        Navigator.pop(
-          context,
-        );
-      } catch (e) {
-        System.showSnackBar("Can't ask question right now $e", context);
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => Center(
+                child: CircularProgressIndicator.adaptive(),
+              ));
+      final result = await api.askQuestion(tc.text, quesState.choices,
+          multi: quesState.value == QuesType.multichoice);
+      Navigator.pop(context);
+      if (result == null) {
+        System.showSnackBar("Something wen't wrong try again later", context);
       }
+      FocusManager.instance.primaryFocus?.unfocus();
+      Navigator.pop(context);
     }
   }
 }

@@ -63,14 +63,3 @@ class CardletModel {
   }
 }
 
-class Pair {
-  final String first;
-  final List<String> last;
-
-  Pair(this.first, this.last);
-
-  Map<String, List<String>> toMap() => {first: last};
-
-  static Pair fromMap(Map<String, List<String>> map) =>
-      Pair(map.keys.first, map.values.first);
-}
