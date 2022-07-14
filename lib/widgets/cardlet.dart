@@ -82,7 +82,7 @@ class SubmitButton extends StatefulWidget {
 
 class _SubmitButtonState extends State<SubmitButton> {
   bool isSubmitted() => local.myAnswers.any((element) =>
-      element.key == widget.choiceKey!.currentState!.widget.question.id);
+      element.item1 == widget.choiceKey!.currentState!.widget.question.id);
 
   @override
   Widget build(BuildContext context) {
@@ -119,9 +119,9 @@ class _ChoicesState extends State<Choices> {
     super.initState();
     if (selectedChoice.isEmpty) {
       var index = local.myAnswers
-          .indexWhere((element) => element.key == widget.question.id);
+          .indexWhere((element) => element.item1 == widget.question.id);
       if (index != -1) {
-        selectedChoice = local.myAnswers[index].value;
+        selectedChoice = local.myAnswers[index].item2;
         isSubmitted = true;
       }
     }
@@ -150,7 +150,7 @@ class _ChoicesState extends State<Choices> {
                     selectedTileColor: Colors.purple,
                     title: Text(i),
                     onTap: local.myAnswers
-                            .any((element) => element.key == widget.question.id)
+                            .any((element) => element.item1 == widget.question.id)
                         ? null
                         : () => setState(
                               () => widget.question.type == QuesType.multichoice

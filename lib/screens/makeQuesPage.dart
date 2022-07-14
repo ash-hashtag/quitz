@@ -69,6 +69,7 @@ class _MakeQuesPageState extends State<MakeQuesPage> {
           return;
         }
       }
+      FocusManager.instance.primaryFocus?.unfocus();
       showDialog(
           context: context,
           barrierDismissible: false,
@@ -81,7 +82,6 @@ class _MakeQuesPageState extends State<MakeQuesPage> {
       if (result == null) {
         System.showSnackBar("Something wen't wrong try again later", context);
       }
-      FocusManager.instance.primaryFocus?.unfocus();
       Navigator.pop(context);
     }
   }

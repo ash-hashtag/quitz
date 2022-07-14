@@ -12,6 +12,7 @@ class CardletModel {
   final List<String> choices;
   List<String> answers;
   List<int> answerCounts;
+  DateTime? refreshAfter;
 
   CardletModel({
     required this.id,

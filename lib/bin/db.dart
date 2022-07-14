@@ -1,20 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quitz/models/cardletModel.dart';
-
-class pear {
-  final String key;
-  final dynamic value;
-
-  pear(this.key, this.value);
-}
+import 'package:tuple/tuple.dart';
 
 class local {
   static List<CardletModel> questions = [];
-  static List<pear> myAnswers = [];
+  static List<Tuple2<String, dynamic>> myAnswers = [];
 
   static Future<void> init() async {
     try {
@@ -62,24 +57,45 @@ class api {
     return questions;
   }
 
-  static Future<List<CardletModel>> refreshMyQuestions() async {
-    List<CardletModel> questions = [];
+  static Future<bool?> refreshMyQuestions(int index) async {
     try {
-      final result = await http.post(Uri.parse(DBURL + '/ques'),
-          body: local.questions.map((e) => e.id).toList());
+      final NOW = DateTime.now();
+      final _sublist = local.questions
+          .sublist(index, min(index + 10, local.questions.length))
+        ..removeWhere(
+            (element) => (element.refreshAfter?.compareTo(NOW) ?? -1) < 0);
+      if (_sublist.isEmpty) {
+        return null;
+      }
+      final result = await http.post(
+        Uri.parse(DBURL + '/ques'),
+        body: _sublist.map((e) => e.id).toList(),
+      );
       if (result.statusCode == HttpStatus.ok) {
         final data = jsonDecode(result.body);
         data.forEach((q) {
-          final question = CardletModel.fromMap(q);
-          if (question != null) questions.add(question);
+          final index =
+              local.questions.indexWhere((element) => element.id == q['_id']);
+          if (index != -1) {
+            final question = local.questions[index];
+            if (question.type == QuesType.text)
+              question.answers = List<String>.from(q['a']);
+            else {
+              question.answerCounts = List<int>.from(q['a']);
+            }
+          }
         });
+        final _ = NOW.add(Duration(minutes: 5));
+        _sublist.forEach((e) => e.refreshAfter = _);
+        return true;
       }
-    } catch (e) {}
-    return questions;
+    } catch (e) {
+      print('Error refreshing $e');
+    }
+    return false;
   }
 
-  static void submitAnwer(
-      CardletModel question, List<String> answers) async {
+  static void submitAnwer(CardletModel question, List<String> answers) async {
     if (question.type != QuesType.text) {
       var selectedChoice = 0;
       for (int i = 0; i < answers.length; i++) {
@@ -97,7 +113,7 @@ class api {
         }
       }
       if (selectedChoice > 0) {
-        final temp = pear(question.id, selectedChoice);
+        final temp = Tuple2(question.id, selectedChoice);
         local.myAnswers.add(temp);
         http
             .get(Uri.parse(DBURL + '/postans/${selectedChoice}/${question.id}'))
@@ -106,7 +122,7 @@ class api {
             .catchError((err) => local.myAnswers.remove(temp));
       }
     } else {
-      final temp = pear(question.id, answers.first);
+      final temp = Tuple2(question.id, answers.first);
       local.myAnswers.add(temp);
       http
           .get(Uri.parse(DBURL + '/postans/${answers.first}/${question.id}'))

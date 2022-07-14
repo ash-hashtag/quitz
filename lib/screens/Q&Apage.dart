@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:loop_page_view/loop_page_view.dart';
 import '../bin/db.dart';
+import '../bin/system.dart';
 import '../models/cardletModel.dart';
 
 class QnAPage extends StatefulWidget {
@@ -12,20 +13,54 @@ class QnAPage extends StatefulWidget {
 }
 
 class _QnAPageState extends State<QnAPage> {
+  bool refresh_active = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('My Q&A'),
+        actions: [
+          IconButton(
+              onPressed: () => refresh(curIndex), icon: Icon(Icons.refresh_outlined))
+        ],
       ),
       body: LoopPageView.builder(
+        onPageChanged: onPageChanged,
         itemBuilder: (_, i) => MyCardlet(
           question: local.questions[i],
         ),
         itemCount: local.questions.length,
       ),
     );
+  }
+  int curIndex = 0;
+  int nextIndex = 0;
+  void onPageChanged(int index) {
+    curIndex = index;
+    if (index > nextIndex) {
+      nextIndex = index + 10;
+    }
+  }
+
+  void refresh(int index) {
+    refresh_active = true;
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => Center(
+              child: CircularProgressIndicator.adaptive(),
+            ));
+    api.refreshMyQuestions(index).then((value) {
+      Navigator.pop(context);
+      switch (value) {
+        case true:
+          setState(() {});
+          break;
+        case false:
+          System.showSnackBar('Error refreshing', context);
+      }
+    });
   }
 }
 
