@@ -12,7 +12,7 @@ class Cardlet extends StatelessWidget {
 
   Cardlet({Key? key, required this.question}) : super(key: key);
 
-  final tc = TextEditingController();
+  // final tc = TextEditingController();
   final choicesKey = GlobalKey<_ChoicesState>();
   final flipKey = GlobalKey<FlipCardState>();
 
@@ -51,21 +51,17 @@ class Cardlet extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 // if (question.answers.isNotEmpty)
-                if (question.type != QuesType.text)
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextButton(
-                      child: Text('Reveal'),
-                      onPressed: flip,
-                    ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextButton(
+                    child: Text('Reveal'),
+                    onPressed: flip,
                   ),
+                ),
                 Expanded(child: SizedBox()),
-                if (!myQuestion)
-                  Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SubmitButton(choiceKey: choicesKey))
-                else if (question.type == QuesType.text)
-                  TextButton(onPressed: flip, child: const Text('show Answers'))
+                Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SubmitButton(choiceKey: choicesKey))
               ],
             )
           ],
@@ -124,10 +120,6 @@ class _ChoicesState extends State<Choices> {
   @override
   void initState() {
     super.initState();
-    if (local.questions.any((element) => element.id == widget.question.id)) {
-      isSubmitted = true;
-      return;
-    }
     if (selectedChoice.isEmpty) {
       var index = local.myAnswers
           .indexWhere((element) => element.key == widget.question.id);
@@ -160,8 +152,8 @@ class _ChoicesState extends State<Choices> {
                   child: ListTile(
                     selectedTileColor: Colors.purple,
                     title: Text(i),
-                    onTap: local.myAnswers.any(
-                            (element) => element.key == widget.question.id)
+                    onTap: local.myAnswers
+                            .any((element) => element.key == widget.question.id)
                         ? null
                         : () => setState(
                               () => widget.question.type == QuesType.multichoice
@@ -197,8 +189,11 @@ class _ChoicesState extends State<Choices> {
       if (textQuestion) {
         selectedChoice = [tc!.text];
       }
-      await api.submitAnwer(widget.question, selectedChoice);
-      setState(() => isSubmitted = true);
+      if (await api.submitAnwer(widget.question, selectedChoice)) {
+        setState(() => isSubmitted = true);
+      } else {
+        System.showSnackBar('failed to submit Answer', context);
+      }
       // try {
       //   await server.db.collection('answers').insert({
       //     '_id': randomID(),
@@ -302,50 +297,76 @@ class _AnswersWidgetState extends State<AnswersWidget> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
-      children: showValues ? values : answers,
+      children: showValues
+          ? values
+          : widget.question.type == QuesType.text
+              ? [
+                  Row(
+                    children: [
+                      Expanded(child: Text(answer ?? 'Seems Noone Answered')),
+                    ],
+                  ),
+                  TextButton(
+                      onPressed: widget.flip, child: const Text('question')),
+                ]
+              : answers,
     );
   }
 
-  late final answers = getChildren();
-  late final values = showActualValues();
+  void setAnswer() {
+    if (widget.question.answers.isNotEmpty) {
+      setState(() => answer = widget
+          .question.answers[Random().nextInt(widget.question.answers.length)]);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (QuesType.text == widget.question.type){
+      setAnswer();
+    } else {
+      answers = getChildren();
+      values = showActualValues();
+    }
+  }
+
+  String? answer;
+
+  late final answers;
+  late final values;
 
   List<Widget> getChildren() {
-    switch (widget.question.type) {
-      case QuesType.choice:
-        return [
-          for (int i = 0; i < widget.question.choices.length; i++)
+    if (widget.question.type == QuesType.choice) {
+      return [
+        for (int i = 0; i < widget.question.choices.length; i++)
+          ListTile(
+            title: Text(
+              '${widget.question.choices[i]} (${widget.question.answerCounts[i] * 100 ~/ totalCount}%)',
+            ),
+          ),
+        TextButton(onPressed: widget.flip, child: const Text('question')),
+      ];
+    } else {
+      final highest =
+          widget.question.answerCounts.reduce((a, b) => a > b ? a : b);
+      return [
+        for (int i = 0; i < widget.question.choices.length; i++)
+          if ((widget.question.answerCounts[i] * 100 ~/ highest) > 50)
             ListTile(
               title: Text(
-                '${widget.question.choices[i]} (${widget.question.answerCounts[i] * 100 ~/ totalCount}%)',
+                widget.question.choices[i],
               ),
             ),
-          TextButton(onPressed: widget.flip, child: const Text('question')),
-        ];
-      case QuesType.multichoice:
-        final highest =
-            widget.question.answerCounts.reduce((a, b) => a > b ? a : b);
-        return [
-          for (int i = 0; i < widget.question.choices.length; i++)
-            if ((widget.question.answerCounts[i] * 100 ~/ highest) > 50)
-              ListTile(
-                title: Text(
-                  widget.question.choices[i],
-                ),
-              ),
-          Row(
-            children: [
-              TextButton(onPressed: widget.flip, child: const Text('question')),
-              TextButton(
-                  onPressed: () => setState(() => showValues = true),
-                  child: const Text('Values')),
-            ],
-          ),
-        ];
-      default:
-        return [
-          Text(widget.question.answers[Random().nextInt(widget.question.answers.length)]),
-          TextButton(onPressed: widget.flip, child: const Text('question')),
-        ];
+        Row(
+          children: [
+            TextButton(onPressed: widget.flip, child: const Text('question')),
+            TextButton(
+                onPressed: () => setState(() => showValues = true),
+                child: const Text('Values')),
+          ],
+        ),
+      ];
     }
   }
 

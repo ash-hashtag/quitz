@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'package:http/http.dart' as http;
 
 import 'package:hive_flutter/hive_flutter.dart';
@@ -165,19 +164,8 @@ class local {
   }
 }
 
-String randomID({int length = 20}) {
-  const characters =
-      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  final rand = Random();
-  return String.fromCharCodes([
-    for (int i = 0; i < length; i++)
-      characters.codeUnitAt(rand.nextInt(characters.length))
-  ]);
-}
-
 class api {
-  static void init() {
-  }
+  static void init() {}
 
   static const DBURL = 'https://quitz-ash-hashtag.koyeb.app';
 
@@ -200,6 +188,22 @@ class api {
     return questions;
   }
 
+  static Future<List<CardletModel>> refreshMyQuestions() async {
+    List<CardletModel> questions = [];
+    try {
+      final result =
+          await http.post(Uri.parse(DBURL + '/ques'), body: local.myQuestions);
+      if (result.statusCode == HttpStatus.ok) {
+        final data = jsonDecode(result.body);
+        data.forEach((q) {
+          final question = CardletModel.fromMap(q);
+          if (question != null) questions.add(question);
+        });
+      }
+    } catch (e) {}
+    return questions;
+  }
+
   static Future<bool> submitAnwer(
       CardletModel question, List<String> answers) async {
     if (question.type != QuesType.text) {
@@ -209,15 +213,22 @@ class api {
           final index = question.choices.indexOf(answers[i]);
           if (index != -1) {
             selectedChoice += 1 << index;
+            question.answerCounts[index] += 1;
           }
         } else if (question.type == QuesType.choice) {
           selectedChoice = question.choices.indexOf(answers.first);
+          if (selectedChoice != -1) {
+            question.answerCounts[selectedChoice] += 1;
+          } else {
+            print("oopsie");
+          }
         }
       }
       if (selectedChoice > 0) {
         final result = await http.get(
             Uri.parse(DBURL + '/postans/${selectedChoice}/${question.id}'));
-
+        print(result.statusCode);
+        print(result.body);
         if (result.statusCode == HttpStatus.ok) {
           local.myAnswers.add(pear(question.id, answers));
           return true;
@@ -228,6 +239,7 @@ class api {
           .get(Uri.parse(DBURL + '/postans/${answers.first}/${question.id}'));
       if (result.statusCode == HttpStatus.ok) {
         local.myAnswers.add(pear(question.id, answers));
+        question.answers.add(answers.first);
         return true;
       }
     }
