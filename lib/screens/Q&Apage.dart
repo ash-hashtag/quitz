@@ -21,12 +21,11 @@ class _QnAPageState extends State<QnAPage> {
         automaticallyImplyLeading: false,
         title: const Text('My Q&A'),
         actions: [
-          IconButton(
-              onPressed: () => refresh(curIndex), icon: Icon(Icons.refresh_outlined))
+          IconButton(onPressed: refresh, icon: Icon(Icons.refresh_outlined))
         ],
       ),
       body: LoopPageView.builder(
-        onPageChanged: onPageChanged,
+        onPageChanged: refresh_active ? onPageChanged : null,
         itemBuilder: (_, i) => MyCardlet(
           question: local.questions[i],
         ),
@@ -34,16 +33,17 @@ class _QnAPageState extends State<QnAPage> {
       ),
     );
   }
+
   int curIndex = 0;
   int nextIndex = 0;
   void onPageChanged(int index) {
     curIndex = index;
-    if (index > nextIndex) {
+    if (curIndex > nextIndex) {
       nextIndex = index + 10;
     }
   }
 
-  void refresh(int index) {
+  void refresh() {
     refresh_active = true;
     showDialog(
         context: context,
@@ -51,7 +51,7 @@ class _QnAPageState extends State<QnAPage> {
         builder: (_) => Center(
               child: CircularProgressIndicator.adaptive(),
             ));
-    api.refreshMyQuestions(index).then((value) {
+    api.refreshMyQuestions(curIndex).then((value) {
       Navigator.pop(context);
       switch (value) {
         case true:
