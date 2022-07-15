@@ -13,6 +13,16 @@ class QnAPage extends StatefulWidget {
 }
 
 class _QnAPageState extends State<QnAPage> {
+  @override
+  void initState() {
+    super.initState();
+    if (local.questions.isEmpty) {
+      local
+          .loadMyQuestions()
+          .whenComplete(() => setState(() => local.questions));
+    }
+  }
+
   bool refresh_active = false;
   @override
   Widget build(BuildContext context) {
@@ -26,8 +36,13 @@ class _QnAPageState extends State<QnAPage> {
       ),
       body: LoopPageView.builder(
         onPageChanged: refresh_active ? onPageChanged : null,
-        itemBuilder: (_, i) => MyCardlet(
-          question: local.questions[i],
+        itemBuilder: (_, i) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: MyCardlet(
+              question: local.questions[i],
+            ),
+          ),
         ),
         itemCount: local.questions.length,
       ),
@@ -72,13 +87,34 @@ class MyCardlet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Container(
-        constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height * 0.4),
+        constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height * 0.3,
+            maxHeight: MediaQuery.of(context).size.height * 0.8),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(question.question),
-            if (question.type == QuesType.text)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text(
+                      question.question,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (question.answers.isEmpty &&
+                !question.answerCounts.any((element) => element != 0))
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: const Text('Seems noone answered'),
+              )
+            else if (question.type == QuesType.text)
               for (final i in question.answers) Text(i)
             else
               for (int i = 0; i < question.answers.length; i++)

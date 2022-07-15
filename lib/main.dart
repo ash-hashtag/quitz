@@ -6,7 +6,6 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:loop_page_view/loop_page_view.dart';
 import 'package:provider/provider.dart';
 import 'package:quitz/bin/ad_state.dart';
-import 'package:quitz/models/cardletModel.dart';
 import 'package:quitz/routes.dart';
 import 'package:quitz/screens/Q&Apage.dart';
 import 'package:quitz/screens/makeQuesPage.dart';
@@ -108,7 +107,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     api.init();
     retry();
 
-
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -136,7 +134,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       api.getQuestions(10).then((value) {
         something_broke = false;
         value.isNotEmpty
-            ? setState(() => local.cachedQuestions.addAll(value))
+            ? setState(() {
+                local.cachedQuestions.addAll(value);
+              })
             : null;
       });
     }
@@ -146,34 +146,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   BannerAd? bannerAd;
 
-  NativeAd? nativeAd;
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // final adState = Provider.of<AdState>(context);
-    // adState.initialization.then((value) => setState(() {
-    //       bannerAd = BannerAd(
-    //           size: AdSize.banner,
-    //           adUnitId: AdState.testBannerId,
-    //           request: AdRequest(),
-    //           listener: AdState.bannerAdListener)
-    //         ..load();
-    //       nativeAd = NativeAd(
-    //           adUnitId: AdState.nativeTestId,
-    //           factoryId: 'listTile',
-    //           listener: AdState.nativeAdListener(() {
-    //             isAdLoaded = true;
-    //             print('${isAdLoaded}');
-    //             // local.cachedQuestions.add(AdWidget(ad: nativeAd!));
-    //           }),
-    //           request: AdRequest())
-    //         ..load().then((value) => null).catchError(print);
-    //       nativeAd = null;
-    //     }));
+    final adState = Provider.of<AdState>(context);
+    adState.initialization.then((value) => setState(() => bannerAd = BannerAd(
+        size: AdSize.banner,
+        adUnitId: AdState.testBannerId,
+        request: AdRequest(),
+        listener: AdState.bannerAdListener)
+      ..load()));
   }
-
-  bool isAdLoaded = false;
 
   @override
   void dispose() {
@@ -216,20 +199,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 )
           : LoopPageView.builder(
               onPageChanged: onPageChanged,
-              itemBuilder: (_, i) => local.cachedQuestions[i] is CardletModel
-                  ? Center(
-                      child: Cardlet(
-                        question: local.cachedQuestions[i],
-                      ),
-                    )
+              itemBuilder: (_, i) => ((i + 1 - (i ~/ 3)) % 3 == 0)
+                  ? Center(child: NativeAdWidget())
                   : Center(
-                      child: Container(
-                        margin: const EdgeInsets.all(30.0),
-                        height: MediaQuery.of(context).size.height / 2,
-                        child: Card(child: local.cachedQuestions[i]),
+                      child: Cardlet(
+                        question: local.cachedQuestions[(i - ((i - 1) ~/ 3))],
                       ),
                     ),
-              itemCount: local.cachedQuestions.length,
+              itemCount: local.cachedQuestions.length + 2,
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => askQuestion(context),
@@ -240,6 +217,52 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   void askQuestion(BuildContext context) {
     Navigator.pushNamed(context, MakeQuesPage.route);
+  }
+}
+
+class NativeAdWidget extends StatefulWidget {
+  const NativeAdWidget({Key? key}) : super(key: key);
+
+  @override
+  State<NativeAdWidget> createState() => _NativeAdWidgetState();
+}
+
+class _NativeAdWidgetState extends State<NativeAdWidget> {
+  NativeAd? ad;
+  bool isAdLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final adState = Provider.of<AdState>(context);
+    adState.initialization.then((value) => setState(() {
+          ad = NativeAd(
+              adUnitId: AdState.nativeTestId,
+              factoryId: 'listTile',
+              listener: AdState.nativeAdListener(() {
+                setState(() {
+                  isAdLoaded = true;
+                });
+                print('${isAdLoaded}');
+              }),
+              request: AdRequest())
+            ..load();
+        }));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Card(
+        child: Container(
+            margin: const EdgeInsets.all(30.0),
+            height: MediaQuery.of(context).size.height / 2,
+            child: isAdLoaded
+                ? AdWidget(ad: ad!)
+                : Center(child: CircularProgressIndicator.adaptive())),
+      ),
+    );
   }
 }
 

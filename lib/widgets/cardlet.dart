@@ -226,10 +226,11 @@ class _AnswersWidgetState extends State<AnswersWidget> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                          child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(answer ?? 'Seems Noone Answered'),
-                      )),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(answer ?? 'Seems Noone Answered'),
+                        ),
+                      ),
                     ],
                   ),
                   Card(
@@ -277,7 +278,10 @@ class _AnswersWidgetState extends State<AnswersWidget> {
               '${widget.question.choices[i]} (${totalCount == 0 ? 0 : widget.question.answerCounts[i] * 100 ~/ totalCount}%)',
             ),
           ),
-        TextButton(onPressed: widget.flip, child: const Text('Question')),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextButton(onPressed: widget.flip, child: const Text('Question')),
+        ),
       ];
     } else {
       final highest =
@@ -291,13 +295,16 @@ class _AnswersWidgetState extends State<AnswersWidget> {
                 widget.question.choices[i],
               ),
             ),
-        Row(
-          children: [
-            TextButton(onPressed: widget.flip, child: const Text('Question')),
-            TextButton(
-                onPressed: () => setState(() => showValues = true),
-                child: const Text('Values')),
-          ],
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              TextButton(onPressed: widget.flip, child: const Text('Question')),
+              TextButton(
+                  onPressed: () => setState(() => showValues = true),
+                  child: const Text('Values')),
+            ],
+          ),
         ),
       ];
     }
@@ -314,17 +321,20 @@ class _AnswersWidgetState extends State<AnswersWidget> {
             '${widget.question.choices[i]} (${totalCount == 0 ? 0 : widget.question.answerCounts[i] * 100 ~/ totalCount}%)',
           ),
         ),
-      Row(
-        children: [
-          TextButton(
-            onPressed: widget.flip,
-            child: const Text('Question'),
-          ),
-          TextButton(
-            onPressed: () => setState(() => showValues = false),
-            child: const Text('Answers'),
-          )
-        ],
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            TextButton(
+              onPressed: widget.flip,
+              child: const Text('Question'),
+            ),
+            TextButton(
+              onPressed: () => setState(() => showValues = false),
+              child: const Text('Answers'),
+            )
+          ],
+        ),
       )
     ];
   }

@@ -22,15 +22,12 @@ class local {
     try {
       final questionBox = await Hive.openBox('local');
 
-      final boxes = questionBox.get('questions');
+      List list = questionBox.get('questions') ?? [];
+      list = list.map((e) => Map<String, dynamic>.from(e)).toList();
+      final _ = list.map((e) => CardletModel.fromMap(e)).toList()
+        ..removeWhere((element) => element == null);
+      questions = _.cast<CardletModel>();
       questionBox.close();
-      if (boxes != null) {
-        final List<Map<String, dynamic>> list =
-            boxes.cast<Map<String, dynamic>>();
-        final _ = list.map((e) => CardletModel.fromMap(e)).toList()
-          ..removeWhere((element) => element == null);
-        questions = _ as List<CardletModel>;
-      }
     } catch (e) {
       print('error local storage $e');
     }
@@ -43,7 +40,7 @@ class local {
       await box.clear();
       await box.put('answers', myAnswers);
       await box.put('questions', data);
-      box.close();
+      await box.close();
       print("saved data");
       return true;
     } catch (err) {
