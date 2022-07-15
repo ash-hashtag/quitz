@@ -36,6 +36,8 @@ class Themes {
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
         backgroundColor: null,
+        textStyle: MaterialStateProperty.all(
+            const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         foregroundColor: MaterialStateProperty.resolveWith<Color>(
           (states) => states.contains(MaterialState.disabled)
               ? Colors.grey
@@ -106,6 +108,8 @@ class Themes {
       style: ButtonStyle(
         elevation: MaterialStateProperty.all<double>(10),
         backgroundColor: null,
+        textStyle: MaterialStateProperty.all(
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         foregroundColor: MaterialStateProperty.resolveWith<Color>(
           (states) => states.contains(MaterialState.disabled)
               ? Colors.grey

@@ -72,6 +72,7 @@ class MyCardlet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Container(
+        constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height * 0.4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,

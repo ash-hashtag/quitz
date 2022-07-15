@@ -12,7 +12,7 @@
         android:layout_height="wrap_content">
 
         <LinearLayout
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginLeft="8dp"
@@ -21,8 +21,8 @@
 
             <ImageView
                 android:id="@+id/iv_list_tile_native_ad_icon"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
                 android:scaleType="fitXY"
                 android:layout_gravity="center_vertical"
                 tools:background="#EDEDED" />
@@ -51,7 +51,6 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginLeft="8dp"
                     android:ellipsize="end"
-                    android:lines="1"
                     android:maxLines="100"
                     android:textSize="14sp"
                     tools:text="body" />

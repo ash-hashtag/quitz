@@ -1,13 +1,19 @@
 package com.rashstudios.quitz
 
 import android.content.Context
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
+import io.flutter.Log
 import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
+
 
 class ListTileNativeAdFactory(val context: Context) : GoogleMobileAdsPlugin.NativeAdFactory {
 
@@ -44,7 +50,13 @@ class ListTileNativeAdFactory(val context: Context) : GoogleMobileAdsPlugin.Nati
             } else {
                 imageView.visibility = View.VISIBLE
                 val image = images.get(0)
-
+                val scale = resources.displayMetrics.density
+                fun dptopx(dp: Double): Int { return ((dp * scale + 0.5f).toInt()) }
+                val params = FrameLayout.LayoutParams(dptopx(300.0 / image.scale), dptopx(300.0))
+                Log.d("debug", "Params: ${params}, scale: ${image.scale}")
+                params.setMargins(0, dptopx(84.0), 0, dptopx(30.0))
+                params.gravity = Gravity.CENTER
+                imageView.layoutParams = params
                 imageView.setImageDrawable(images.get(0).drawable)
             }
             this.imageView = imageView

@@ -35,7 +35,9 @@ class CardletModel {
               ? QuesType.choice
               : QuesType.text;
       if (choices.isNotEmpty) {
-        answerCounts = List<int>.from(map['a']);
+        answerCounts = map['a'] != null
+            ? List<int>.from(map['a'])
+            : List<int>.filled(choices.length, 0);
       } else if (map['a'] != null) {
         answers = List<String>.from(map['a']);
       }
@@ -59,8 +61,7 @@ class CardletModel {
       'q': question,
       if (type == QuesType.choice) 'c': choices,
       if (type == QuesType.multichoice) 'mc': choices,
-      if (answers.isNotEmpty) 'a': answers,
+      'a': answerCounts.isNotEmpty ? answerCounts : answers,
     };
   }
 }
-

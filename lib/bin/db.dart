@@ -5,31 +5,51 @@ import 'package:http/http.dart' as http;
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quitz/models/cardletModel.dart';
-import 'package:tuple/tuple.dart';
 
 class local {
   static List<CardletModel> questions = [];
-  static List<Tuple2<String, dynamic>> myAnswers = [];
+  static List cachedQuestions = [];
+  static Map<String, dynamic> myAnswers = {};
 
-  static Future<void> init() async {
+  static Future<void> loadMyAnswers() async {
+    final localBox = await Hive.openBox('local');
+    myAnswers = Map<String, dynamic>.from(localBox.get('answers') ?? {});
+    localBox.close();
+    print(myAnswers);
+  }
+
+  static Future<void> loadMyQuestions() async {
     try {
-      await Hive.initFlutter();
-      final questionBox = await Hive.openLazyBox('local');
-      final List<Map<String, dynamic>> list =
-          (await questionBox.get('questions')).cast<Map<String, dynamic>>();
-      final _ = list.map((e) => CardletModel.fromMap(e)).toList()
-        ..removeWhere((element) => element == null);
-      questions = _ as List<CardletModel>;
+      final questionBox = await Hive.openBox('local');
+
+      final boxes = questionBox.get('questions');
+      questionBox.close();
+      if (boxes != null) {
+        final List<Map<String, dynamic>> list =
+            boxes.cast<Map<String, dynamic>>();
+        final _ = list.map((e) => CardletModel.fromMap(e)).toList()
+          ..removeWhere((element) => element == null);
+        questions = _ as List<CardletModel>;
+      }
     } catch (e) {
       print('error local storage $e');
     }
   }
 
-  static Future<void> end() async {
-    Map<String, List<String>> map = {};
-    Hive.openBox('answers').then((value) => value
-      ..clear
-      ..putAll(map));
+  static Future<bool> end() async {
+    try {
+      final data = questions.map((e) => e.toMap()).toList();
+      final box = await Hive.openBox('local');
+      await box.clear();
+      await box.put('answers', myAnswers);
+      await box.put('questions', data);
+      box.close();
+      print("saved data");
+      return true;
+    } catch (err) {
+      print('Error saving locally $err');
+      return false;
+    }
   }
 }
 
@@ -45,9 +65,12 @@ class api {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         for (final ques in data) {
-          final question = CardletModel.fromMap(ques);
-          if (question != null) {
-            questions.add(question);
+          if (!local.cachedQuestions.any((element) =>
+              element is CardletModel && element.id == ques['_id'])) {
+            final question = CardletModel.fromMap(ques);
+            if (question != null) {
+              questions.add(question);
+            }
           }
         }
       }
@@ -112,32 +135,33 @@ class api {
           }
         }
       }
-      if (selectedChoice > 0) {
-        final temp = Tuple2(question.id, selectedChoice);
-        local.myAnswers.add(temp);
+      if (selectedChoice >= 0) {
+        local.myAnswers[question.id] = selectedChoice;
         http
             .get(Uri.parse(DBURL + '/postans/${selectedChoice}/${question.id}'))
-            .then((value) =>
-                value.statusCode == 200 ? null : local.myAnswers.remove(temp))
-            .catchError((err) => local.myAnswers.remove(temp));
+            .then((value) => value.statusCode == HttpStatus.ok
+                ? null
+                : local.myAnswers.remove(question.id))
+            .catchError((err) => local.myAnswers.remove(question.id));
       }
     } else {
-      final temp = Tuple2(question.id, answers.first);
-      local.myAnswers.add(temp);
+      local.myAnswers[question.id] = answers.first;
       http
           .get(Uri.parse(DBURL + '/postans/${answers.first}/${question.id}'))
           .then((value) => value.statusCode == HttpStatus.ok
               ? null
-              : local.myAnswers.remove(temp))
-          .catchError((err) => local.myAnswers.remove(temp));
+              : local.myAnswers.remove(question.id))
+          .catchError((err) => local.myAnswers.remove(question.id));
     }
+    print(local.myAnswers);
   }
 
   static Future<CardletModel?> askQuestion(
       String question, List<String> choices,
       {bool multi = false}) async {
     if (choices.isEmpty) {
-      final result = await http.get(Uri.parse(DBURL + '/freeques/' + question));
+      final result = await http.get(Uri.parse(DBURL + '/postques/' + question));
+      print(result.statusCode);
       if (result.body.isNotEmpty && result.statusCode == HttpStatus.ok) {
         final _question = CardletModel(
             id: result.body, question: question, type: QuesType.text);
@@ -149,10 +173,14 @@ class api {
         'q': question,
         if (multi) 'mc': choices else 'c': choices,
       };
-      final result = await http.post(Uri.parse(DBURL + '/postques'),
-          body: jsonEncode(map));
+      final json = jsonEncode(map);
+      print(json);
+      final result =
+          await http.post(Uri.parse(DBURL + '/postques'), body: json);
+      print(result.body);
+      print(result.statusCode);
       if (result.body.isNotEmpty) {
-        map['id'] = result.body;
+        map['_id'] = result.body;
         final _ques = CardletModel.fromMap(map);
         if (_ques != null) {
           local.questions.add(_ques);

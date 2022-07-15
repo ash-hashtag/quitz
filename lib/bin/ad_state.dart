@@ -25,7 +25,7 @@ class AdState {
     onAdWillDismissScreen: (ad) => print('Ad dismissed ${ad.adUnitId}'),
   );
 
-  static nativeAdListener(VoidCallback onAddloaded) => NativeAdListener(
+  static NativeAdListener nativeAdListener(VoidCallback onAddloaded) => NativeAdListener(
     onAdLoaded: (ad) => onAddloaded(),
     onAdClosed: (ad) => print('Native Ad closed ${ad.adUnitId}'),
     onAdClicked: (ad) => print('Native Ad clicked ${ad.adUnitId}'),
