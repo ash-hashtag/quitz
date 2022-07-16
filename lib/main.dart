@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -21,6 +22,7 @@ void main() async {
   final initAdsFuture = MobileAds.instance.initialize();
   final adState = AdState(initAdsFuture);
   await local.loadMyAnswers();
+  await local.loadMyQuestions();
   runApp(Provider.value(
     value: adState,
     builder: (_, child) => const MyApp(),
@@ -111,10 +113,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   void retry() {
-    something_broke = false;
+    setState(() => something_broke = false);
     onPageChanged(0);
-
-    Future.delayed(Duration(seconds: 5), () {
+    Future.delayed(Duration(seconds: 6), () {
       if (local.cachedQuestions.isEmpty) {
         setState(() => something_broke = true);
       }
@@ -130,7 +131,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   void onPageChanged(int index) {
-    if (index > local.cachedQuestions.length - 2) {
+    if (index > local.cachedQuestions.length - 2 && Random().nextBool()) {
       api.getQuestions(10).then((value) {
         something_broke = false;
         value.isNotEmpty
@@ -199,14 +200,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 )
           : LoopPageView.builder(
               onPageChanged: onPageChanged,
-              itemBuilder: (_, i) => ((i + 1 - (i ~/ 3)) % 3 == 0)
+              itemBuilder: (_, i) => (i + 1) % 4 == 0
                   ? Center(child: NativeAdWidget())
                   : Center(
                       child: Cardlet(
-                        question: local.cachedQuestions[(i - ((i - 1) ~/ 3))],
+                        question: local.cachedQuestions[i - (i ~/ 4)],
                       ),
                     ),
-              itemCount: local.cachedQuestions.length + 2,
+              itemCount: local.cachedQuestions.length +
+                  (local.cachedQuestions.length ~/ 4) +
+                  1,
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => askQuestion(context),
@@ -243,7 +246,6 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
                 setState(() {
                   isAdLoaded = true;
                 });
-                print('${isAdLoaded}');
               }),
               request: AdRequest())
             ..load();

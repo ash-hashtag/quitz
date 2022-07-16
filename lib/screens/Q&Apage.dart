@@ -55,19 +55,25 @@ class _QnAPageState extends State<QnAPage> {
     curIndex = index;
     if (curIndex > nextIndex) {
       nextIndex = index + 10;
+      refresh(dialog: false);
     }
   }
 
-  void refresh() {
-    refresh_active = true;
-    showDialog(
+  void refresh({bool? dialog}) {
+    if (!refresh_active) {
+      refresh_active = true;
+    }
+    if (dialog == null) {
+      showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => Center(
-              child: CircularProgressIndicator.adaptive(),
-            ));
+          child: CircularProgressIndicator.adaptive(),
+        ),
+      );
+    }
     api.refreshMyQuestions(curIndex).then((value) {
-      Navigator.pop(context);
+      if (dialog == null) Navigator.pop(context);
       switch (value) {
         case true:
           setState(() {});
@@ -91,11 +97,10 @@ class MyCardlet extends StatelessWidget {
             minHeight: MediaQuery.of(context).size.height * 0.3,
             maxHeight: MediaQuery.of(context).size.height * 0.8),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Padding(
@@ -103,6 +108,7 @@ class MyCardlet extends StatelessWidget {
                     child: Text(
                       question.question,
                       style: TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),

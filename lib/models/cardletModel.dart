@@ -24,7 +24,7 @@ class CardletModel {
     this.answerCounts = const [],
   });
 
-  static CardletModel? fromMap(Map<String, dynamic> map) {
+  static CardletModel? fromMap(Map<String, dynamic> map, {bool local = false}) {
     try {
       List<String> answers = [];
       List<int> answerCounts = [];
@@ -42,7 +42,7 @@ class CardletModel {
         answers = List<String>.from(map['a']);
       }
       return CardletModel(
-        id: map['_id'],
+        id: local ? map['id'] : map['_id']!['\$oid'],
         question: map['q'],
         choices: choices,
         type: type,
@@ -57,11 +57,14 @@ class CardletModel {
 
   Map<String, dynamic> toMap() {
     return {
-      '_id': id,
+      'id': id,
       'q': question,
       if (type == QuesType.choice) 'c': choices,
       if (type == QuesType.multichoice) 'mc': choices,
       'a': answerCounts.isNotEmpty ? answerCounts : answers,
     };
   }
+
+  @override
+  String toString() => toMap().toString();
 }

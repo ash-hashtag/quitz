@@ -128,7 +128,6 @@ class _ChoicesState extends State<Choices> {
       } else if (answer is String) {
         selectedChoice = [answer];
       }
-      print(answer);
       if (selectedChoice.isNotEmpty) setState(() => isSubmitted = true);
     }
   }
