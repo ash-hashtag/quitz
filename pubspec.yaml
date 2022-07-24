@@ -15,7 +15,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 1.0.0+2
+
 
 environment:
   sdk: ">=2.17.5 <3.0.0"
@@ -39,8 +40,7 @@ dependencies:
   hive_flutter: ^1.1.0
   google_mobile_ads: ^1.3.0
   http: ^0.13.4
-  tuple: ^2.0.0
-  dio: ^4.0.6
+  in_app_update: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -50,7 +50,7 @@ dev_dependencies:
 
 flutter_icons:
   android: true
-  image_path: "assets/icon.png"
+  image_path: "assets/quitz-logo.png"
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your

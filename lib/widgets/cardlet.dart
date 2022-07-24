@@ -50,9 +50,11 @@ class Cardlet extends StatelessWidget {
                 // if (question.answers.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: TextButton(
-                    child: Text('Reveal'),
-                    onPressed: flip,
+                  child: Card(
+                    child: TextButton(
+                      child: Text('Reveal'),
+                      onPressed: flip,
+                    ),
                   ),
                 ),
                 Expanded(child: SizedBox()),
@@ -279,7 +281,9 @@ class _AnswersWidgetState extends State<AnswersWidget> {
           ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TextButton(onPressed: widget.flip, child: const Text('Question')),
+          child: Card(
+              child: TextButton(
+                  onPressed: widget.flip, child: const Text('Question'))),
         ),
       ];
     } else {

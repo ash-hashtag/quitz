@@ -2,7 +2,7 @@
     package="com.rashstudios.quitz">
         <uses-permission android:name="android.permission.INTERNET"/>
    <application
-        android:label="quitz"
+        android:label="Quitz"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

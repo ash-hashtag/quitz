@@ -27,19 +27,15 @@ class ListTileNativeAdFactory(val context: Context) : GoogleMobileAdsPlugin.Nati
         with(nativeAdView) {
             val attributionViewSmall =
                 findViewById<TextView>(R.id.tv_list_tile_native_ad_attribution_small)
-            val attributionViewLarge =
-                findViewById<TextView>(R.id.tv_list_tile_native_ad_attribution_large)
 
             val iconView = findViewById<ImageView>(R.id.iv_list_tile_native_ad_icon)
             val imageView = findViewById<ImageView>(R.id.iv_list_tile_native_ad_image)
             val icon = nativeAd.icon
             if (icon != null) {
                 attributionViewSmall.visibility = View.VISIBLE
-                attributionViewLarge.visibility = View.INVISIBLE
                 iconView.setImageDrawable(icon.drawable)
             } else {
                 attributionViewSmall.visibility = View.INVISIBLE
-                attributionViewLarge.visibility = View.VISIBLE
             }
             this.iconView = iconView
 
@@ -50,13 +46,13 @@ class ListTileNativeAdFactory(val context: Context) : GoogleMobileAdsPlugin.Nati
             } else {
                 imageView.visibility = View.VISIBLE
                 val image = images.get(0)
-                val scale = resources.displayMetrics.density
-                fun dptopx(dp: Double): Int { return ((dp * scale + 0.5f).toInt()) }
-                val params = FrameLayout.LayoutParams(dptopx(300.0 / image.scale), dptopx(300.0))
-                Log.d("debug", "Params: ${params}, scale: ${image.scale}")
-                params.setMargins(0, dptopx(84.0), 0, dptopx(30.0))
-                params.gravity = Gravity.CENTER
-                imageView.layoutParams = params
+//                val scale = resources.displayMetrics.density
+//                fun dptopx(dp: Double): Int { return ((dp * scale + 0.5f).toInt()) }
+//                val params = FrameLayout.LayoutParams(dptopx(300.0 / image.scale), dptopx(300.0))
+//                Log.d("debug", "Params: ${params}, scale: ${image.scale}")
+//                params.setMargins(0, dptopx(84.0), 0, dptopx(30.0))
+//                params.gravity = Gravity.CENTER
+//                imageView.layoutParams = params
                 imageView.setImageDrawable(images.get(0).drawable)
             }
             this.imageView = imageView

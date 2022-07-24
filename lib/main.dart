@@ -19,10 +19,30 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Hive.initFlutter();
+  api.init();
   final initAdsFuture = MobileAds.instance.initialize();
   final adState = AdState(initAdsFuture);
   await local.loadMyAnswers();
   await local.loadMyQuestions();
+
+  // FlutterError.onError = (details) => print(
+  // 'Error Details ${details.summary}, ${details.stack}, ${details.library}');
+
+  ErrorWidget.builder = (details) => Scaffold(
+        appBar: AppBar(
+          title: const Text('Error'),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(48.0),
+            child: SelectableText(
+              'This should probably be fixed by restarting...\nif this happens again Report to us\n${details.exceptionAsString()}',
+              maxLines: 5,
+            ),
+          ),
+        ),
+      );
+
   runApp(Provider.value(
     value: adState,
     builder: (_, child) => const MyApp(),
@@ -105,11 +125,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    local.checkForPrivacy(context).whenComplete(retry);
     super.initState();
-    api.init();
-    retry();
-
     WidgetsBinding.instance.addObserver(this);
+
+    // InAppUpdate.checkForUpdate()
+    //     .then((value) =>
+    //         value.updateAvailability == UpdateAvailability.updateAvailable
+    //             ? InAppUpdate.performImmediateUpdate()
+    //                 .then((value) => null)
+    //                 .catchError((err) =>
+    //                     System.showSnackBar('failed to update $err', context))
+    //             : null)
+    //     .catchError(
+    //         (err) => System.showSnackBar('update check failed $err', context));
   }
 
   void retry() {
@@ -130,9 +159,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  bool getting = false;
   void onPageChanged(int index) {
-    if (index > local.cachedQuestions.length - 2 && Random().nextBool()) {
-      api.getQuestions(10).then((value) {
+    if (!getting &&
+        (local.cachedQuestions.isEmpty ||
+            (index > local.cachedQuestions.length - 2 &&
+                Random().nextBool()))) {
+      getting = true;
+      Future.delayed(Duration(seconds: 10), () => getting = false);
+      api.getQuestions().then((value) {
         something_broke = false;
         value.isNotEmpty
             ? setState(() {
@@ -141,28 +176,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             : null;
       });
     }
+    // if((index + 1) % 2 == 0 && !AdState.nativeAdLoaded){
+    //   print('loading native ad');
+    //   AdState.loadUpNativeAd(context);
+    // }
   }
 
-  late StreamSubscription adstream;
-
-  BannerAd? bannerAd;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final adState = Provider.of<AdState>(context);
-    adState.initialization.then((value) => setState(() => bannerAd = BannerAd(
-        size: AdSize.banner,
-        adUnitId: AdState.testBannerId,
-        request: AdRequest(),
-        listener: AdState.bannerAdListener)
-      ..load()));
-  }
+  // late StreamSubscription adstream;
 
   @override
   void dispose() {
     super.dispose();
-    adstream.cancel();
+    // adstream.cancel();
     WidgetsBinding.instance.removeObserver(this);
   }
 
@@ -181,12 +206,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           )
         ],
       ),
-      bottomSheet: bannerAd != null
-          ? Container(
-              color: Theme.of(context).primaryColor,
-              height: bannerAd!.size.height.toDouble(),
-              child: AdWidget(ad: bannerAd!))
-          : null,
+      bottomSheet: BannerAdWidget(),
       body: local.cachedQuestions.isEmpty
           ? something_broke
               ? Center(
@@ -204,18 +224,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   ? Center(child: NativeAdWidget())
                   : Center(
                       child: Cardlet(
-                        question: local.cachedQuestions[i - (i ~/ 4)],
+                        question: local.cachedQuestions[min(
+                            i - (i ~/ 4), local.cachedQuestions.length - 1)],
                       ),
                     ),
-              itemCount: local.cachedQuestions.length +
-                  (local.cachedQuestions.length ~/ 4) +
-                  1,
+              itemCount: itemCount(),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => askQuestion(context),
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  int itemCount() {
+    final total =
+        local.cachedQuestions.length + (local.cachedQuestions.length ~/ 4);
+    // print(
+    // 'total $total: ${local.cachedQuestions.map((e) => e is CardletModel ? e.id : 'ad')}');
+    return total + ((total % 4 == 0) ? 1 : 0);
   }
 
   void askQuestion(BuildContext context) {
@@ -240,12 +267,10 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
     final adState = Provider.of<AdState>(context);
     adState.initialization.then((value) => setState(() {
           ad = NativeAd(
-              adUnitId: AdState.nativeTestId,
+              adUnitId: AdState.nativeId,
               factoryId: 'listTile',
               listener: AdState.nativeAdListener(() {
-                setState(() {
-                  isAdLoaded = true;
-                });
+                setState(() => isAdLoaded = true);
               }),
               request: AdRequest())
             ..load();
@@ -259,39 +284,50 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
       child: Card(
         child: Container(
             margin: const EdgeInsets.all(30.0),
-            height: MediaQuery.of(context).size.height / 2,
-            child: isAdLoaded
-                ? AdWidget(ad: ad!)
-                : Center(child: CircularProgressIndicator.adaptive())),
+            height: MediaQuery.of(context).size.height * 0.4,
+            child: Center(
+                child: isAdLoaded
+                    ? AdWidget(ad: ad!)
+                    : CircularProgressIndicator.adaptive())),
       ),
     );
   }
 }
 
-/* class MyWidget extends StatefulWidget { */
-/*   const MyWidget({Key? key}) : super(key: key); */
+class BannerAdWidget extends StatefulWidget {
+  const BannerAdWidget({Key? key}) : super(key: key);
 
-/*   @override */
-/*   State<MyWidget> createState() => _MyWidgetState(); */
-/* } */
+  @override
+  State<BannerAdWidget> createState() => _BannerAdWidgetState();
+}
 
-/* class _MyWidgetState extends State<MyWidget> { */
-/*   @override */
-/*   void initState() { */
-/*     // TODO: implement initState */
-/*     super.initState(); */
-/*     print('init ${widget.hashCode}'); */
-/*   } */
+class _BannerAdWidgetState extends State<BannerAdWidget> {
+  BannerAd? bannerAd;
 
-/*   @override */
-/*   void dispose() { */
-/*     // TODO: implement dispose */
-/*     print('disp ${widget.hashCode}'); */
-/*     super.dispose(); */
-/*   } */
+  @override
+  void initState() {
+    super.initState();
+  }
 
-/*   @override */
-/*   Widget build(BuildContext context) { */
-/*     return Container(); */
-/*   } */
-/* } */
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final adState = Provider.of<AdState>(context);
+    adState.initialization.then((value) => setState(() => bannerAd = BannerAd(
+        size: AdSize.banner,
+        adUnitId: AdState.bannerId,
+        request: AdRequest(),
+        listener: AdState.bannerAdListener)
+      ..load()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return bannerAd != null
+        ? Container(
+            height: bannerAd!.size.height.toDouble(),
+            color: Theme.of(context).backgroundColor,
+            child: Center(child: AdWidget(ad: bannerAd!)))
+        : SizedBox();
+  }
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:loop_page_view/loop_page_view.dart';
+import 'package:quitz/main.dart';
 import '../bin/db.dart';
 import '../bin/system.dart';
 import '../models/cardletModel.dart';
@@ -13,29 +14,17 @@ class QnAPage extends StatefulWidget {
 }
 
 class _QnAPageState extends State<QnAPage> {
-  @override
-  void initState() {
-    super.initState();
-    if (local.questions.isEmpty) {
-      local
-          .loadMyQuestions()
-          .whenComplete(() => setState(() => local.questions));
-    }
-  }
 
-  bool refresh_active = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('My Q&A'),
-        actions: [
-          IconButton(onPressed: refresh, icon: Icon(Icons.refresh_outlined))
-        ],
       ),
+      bottomSheet: BannerAdWidget(),
       body: LoopPageView.builder(
-        onPageChanged: refresh_active ? onPageChanged : null,
+        onPageChanged: onPageChanged,
         itemBuilder: (_, i) => Center(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -49,39 +38,24 @@ class _QnAPageState extends State<QnAPage> {
     );
   }
 
-  int curIndex = 0;
   int nextIndex = 0;
   void onPageChanged(int index) {
-    curIndex = index;
-    if (curIndex > nextIndex) {
+    if (index > nextIndex) {
       nextIndex = index + 10;
-      refresh(dialog: false);
+      refresh(index);
     }
   }
 
-  void refresh({bool? dialog}) {
-    if (!refresh_active) {
-      refresh_active = true;
-    }
-    if (dialog == null) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => Center(
-          child: CircularProgressIndicator.adaptive(),
-        ),
-      );
-    }
-    api.refreshMyQuestions(curIndex).then((value) {
-      if (dialog == null) Navigator.pop(context);
-      switch (value) {
-        case true:
-          setState(() {});
-          break;
-        case false:
-          System.showSnackBar('Error refreshing', context);
-      }
-    });
+  void refresh(int index) {
+    api.refreshMyQuestions(index).then((value) => (value == false)
+        ? System.showSnackBar('Error refreshing', context)
+        : null);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    refresh(0);
   }
 }
 
@@ -94,8 +68,9 @@ class MyCardlet extends StatelessWidget {
     return Card(
       child: Container(
         constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height * 0.3,
-            maxHeight: MediaQuery.of(context).size.height * 0.8),
+          minHeight: MediaQuery.of(context).size.height * 0.3,
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           mainAxisSize: MainAxisSize.min,
