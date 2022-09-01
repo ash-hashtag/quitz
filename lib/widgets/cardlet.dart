@@ -117,7 +117,10 @@ class _ChoicesState extends State<Choices> {
   @override
   void initState() {
     super.initState();
+    _isSubmitted();
+  }
 
+  void _isSubmitted() {
     final answer = local.myAnswers[widget.question.id];
     if (answer != null) {
       if (widget.question.type == QuesType.choice) {

@@ -7,10 +7,10 @@ class AdState {
   AdState(this.initialization);
 
   static const bannerId =
-      'ca-app-pub-6448660671908120/4361542873';
+      'ca-app-pub-6050025830397443/3457914886';
       // 'ca-app-pub-3940256099942544/6300978111';
   static const nativeId =
-      'ca-app-pub-6448660671908120/3752837084';
+      'ca-app-pub-6050025830397443/5700934842';
       // 'ca-app-pub-3940256099942544/2247696110';
   static final bannerAdListener = BannerAdListener(
     onAdLoaded: (ad) => print('Ad loaded ${ad.adUnitId}'),

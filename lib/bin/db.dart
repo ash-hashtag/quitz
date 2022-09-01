@@ -151,7 +151,7 @@ class api {
       final _sublist = local.questions
           .sublist(index, min(index + 10, local.questions.length))
         ..removeWhere(
-            (element) => (element.refreshAfter?.compareTo(NOW) ?? -1) < 0);
+            (element) => (element.refreshAfter?.compareTo(NOW) ?? 1) < 0);
       if (_sublist.isEmpty) {
         return null;
       }

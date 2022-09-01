@@ -14,7 +14,6 @@ class QnAPage extends StatefulWidget {
 }
 
 class _QnAPageState extends State<QnAPage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
